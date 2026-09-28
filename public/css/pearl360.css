@@ -1,0 +1,180 @@
+/* ==========================================================================
+   Pearl360 – Uganda Parks Virtual Tour & Smart Trip Planner
+   Palette inspired by Uganda: forest green, savannah gold, crested-crane red.
+   Change the variables below to re-brand the whole system.
+   ========================================================================== */
+:root {
+    --forest: #1f4d3a;
+    --forest-dark: #143326;
+    --forest-light: #e7f0eb;
+    --gold: #e0a526;
+    --gold-dark: #b9841a;
+    --crane: #c8102e;
+    --ink: #1c2321;
+    --sand: #faf6ee;
+    --radius: 14px;
+    --bs-body-font-family: 'Inter', system-ui, sans-serif;
+    --bs-body-color: var(--ink);
+    --bs-link-color: var(--forest);
+    --bs-link-hover-color: var(--forest-dark);
+}
+body { background: var(--sand); }
+h1, h2, h3, h4, h5, h6, .brand-text, .display-font { font-family: 'Outfit', sans-serif; letter-spacing: -.01em; }
+a { text-decoration: none; }
+.text-forest { color: var(--forest) !important; }
+.text-gold { color: var(--gold) !important; }
+.text-crane { color: var(--crane) !important; }
+.bg-forest { background: var(--forest) !important; color: #fff; }
+.bg-forest-light { background: var(--forest-light) !important; }
+.bg-gold { background: var(--gold) !important; color: #1c1c1c; }
+.bg-sand { background: var(--sand) !important; }
+
+/* Buttons */
+.btn { border-radius: 10px; font-weight: 500; }
+.btn-forest { background: var(--forest); color: #fff; border: 1px solid var(--forest); }
+.btn-forest:hover, .btn-forest:focus { background: var(--forest-dark); color: #fff; }
+.btn-outline-forest { color: var(--forest); border: 1px solid var(--forest); background: transparent; }
+.btn-outline-forest:hover { background: var(--forest); color: #fff; }
+.btn-gold { background: var(--gold); color: #1c1c1c; border: 1px solid var(--gold); }
+.btn-gold:hover { background: var(--gold-dark); color: #fff; }
+.btn-crane { background: var(--crane); color: #fff; }
+.btn-crane:hover { background: #9e0c24; color: #fff; }
+
+/* Navbar */
+.p360-nav { background: rgba(255,255,255,.95); backdrop-filter: blur(8px); box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+.p360-nav .nav-link { font-weight: 500; color: #3a4642; padding: .5rem .85rem !important; border-radius: 8px; }
+.p360-nav .nav-link.active, .p360-nav .nav-link:hover { color: var(--forest); background: var(--forest-light); }
+.brand-text { font-weight: 800; font-size: 1.45rem; color: var(--forest); }
+.brand-text span { color: var(--gold); }
+
+/* Hero */
+.hero { position: relative; min-height: 78vh; display: flex; align-items: center; color: #fff; overflow: hidden; background: var(--forest-dark) center/cover no-repeat; }
+.hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(10,30,20,.88) 0%, rgba(10,30,20,.55) 55%, rgba(10,30,20,.15) 100%); }
+.hero > * { position: relative; }
+.hero video.hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+.hero h1 { font-size: clamp(2.2rem, 5vw, 4rem); font-weight: 800; line-height: 1.05; }
+.hero .lead { color: rgba(255,255,255,.85); max-width: 560px; }
+.hero-search { background: #fff; border-radius: 16px; padding: .5rem; box-shadow: 0 20px 40px rgba(0,0,0,.25); max-width: 560px; }
+.hero-search input, .hero-search select { border: 0; box-shadow: none !important; }
+.hero-badge { display: inline-flex; gap: .5rem; align-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); padding: .35rem .8rem; border-radius: 99px; font-size: .85rem; }
+
+.stat-strip { margin-top: -60px; position: relative; z-index: 2; }
+.stat-card { background: #fff; border-radius: var(--radius); padding: 1.25rem; box-shadow: 0 10px 30px rgba(0,0,0,.08); text-align: center; }
+.stat-card .num { font-family: 'Outfit'; font-size: 2rem; font-weight: 800; color: var(--forest); }
+
+.section-title { font-weight: 800; }
+.section-kicker { color: var(--gold-dark); text-transform: uppercase; letter-spacing: .12em; font-size: .78rem; font-weight: 600; }
+
+/* Park cards */
+.park-card { border-radius: var(--radius); overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.park-card:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(0,0,0,.12) !important; }
+.park-card-img { display: block; height: 190px; background-size: cover; background-position: center; position: relative; }
+.park-card-img .region { position: absolute; left: 12px; top: 12px; }
+.park-card-img .unesco { position: absolute; right: 12px; top: 12px; }
+.park-card .card-title a { color: var(--ink); }
+.chip { display: inline-block; font-size: .72rem; padding: .2rem .55rem; border-radius: 99px; background: var(--forest-light); color: var(--forest); font-weight: 500; }
+.card { border-radius: var(--radius); }
+
+/* Park page */
+.park-hero { min-height: 52vh; background-size: cover; background-position: center; position: relative; display: flex; align-items: flex-end; color: #fff; }
+.park-hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.8), rgba(0,0,0,.05) 70%); }
+.park-hero > * { position: relative; }
+.fact { display: flex; gap: .75rem; align-items: center; }
+.fact i { font-size: 1.35rem; color: var(--gold-dark); width: 42px; height: 42px; display: grid; place-items: center; background: #fff7e3; border-radius: 12px; }
+.gallery-thumb { height: 150px; width: 100%; object-fit: cover; border-radius: 12px; cursor: zoom-in; }
+.ratio-video { border-radius: 12px; overflow: hidden; }
+.mini-map { height: 280px; border-radius: var(--radius); }
+
+/* Map page */
+#parksMap { height: calc(100vh - 66px); }
+.map-panel { position: absolute; top: 1rem; left: 1rem; z-index: 500; width: 340px; max-height: calc(100% - 2rem); overflow: auto; }
+.map-popup img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; }
+@media (max-width: 767px) { .map-panel { position: static; width: 100%; max-height: none; } #parksMap { height: 65vh; } }
+
+/* 360° tour */
+.tour-wrap { position: relative; height: calc(100vh - 66px); background: #000; }
+#panorama { width: 100%; height: 100%; }
+.tour-sidebar { position: absolute; top: 1rem; right: 1rem; width: 300px; z-index: 5; max-height: calc(100% - 2rem); overflow: auto; background: rgba(15,25,20,.82); color: #fff; border-radius: var(--radius); backdrop-filter: blur(6px); }
+.tour-sidebar .scene-btn { display: flex; gap: .6rem; align-items: center; width: 100%; text-align: left; background: transparent; border: 1px solid rgba(255,255,255,.12); color: #fff; border-radius: 10px; padding: .45rem; margin-bottom: .45rem; }
+.tour-sidebar .scene-btn.active, .tour-sidebar .scene-btn:hover { background: rgba(224,165,38,.25); border-color: var(--gold); }
+.tour-sidebar .scene-btn img { width: 64px; height: 40px; object-fit: cover; border-radius: 6px; }
+.tour-topbar { position: absolute; top: 1rem; left: 1rem; z-index: 5; }
+.tour-caption { position: absolute; left: 1rem; bottom: 1rem; z-index: 5; max-width: 480px; background: rgba(15,25,20,.8); color: #fff; padding: .8rem 1rem; border-radius: 12px; }
+@media (max-width: 767px) { .tour-sidebar { position: static; width: 100%; max-height: none; border-radius: 0; } .tour-wrap { height: 70vh; } .tour-caption { display: none; } }
+.pnlm-hotspot.pnlm-scene { filter: hue-rotate(40deg) saturate(1.6); }
+
+/* Planner */
+.planner-step { background: #fff; border-radius: var(--radius); padding: 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,.05); }
+.interest-option input { display: none; }
+.interest-option label { display: flex; align-items: center; gap: .5rem; border: 2px solid #e5e7e6; border-radius: 12px; padding: .7rem .9rem; cursor: pointer; background: #fff; transition: .15s; height: 100%; }
+.interest-option input:checked + label { border-color: var(--forest); background: var(--forest-light); color: var(--forest); font-weight: 600; }
+.interest-option label i { font-size: 1.3rem; color: var(--gold-dark); }
+.score-ring { --p: 50; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--forest) calc(var(--p) * 1%), #e6ece9 0); flex-shrink: 0; }
+.score-ring span { width: 66px; height: 66px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-family: 'Outfit'; font-weight: 800; font-size: 1.3rem; color: var(--forest); }
+
+/* Compare */
+.compare-table th { background: var(--forest-light); width: 180px; }
+.compare-table td, .compare-table th { vertical-align: top; }
+
+/* Dashboards */
+.p360-sidebar .nav-link { color: #3a4642; border-radius: 10px; padding: .55rem .8rem; margin-bottom: 2px; }
+.p360-sidebar .nav-link.active, .p360-sidebar .nav-link:hover { background: var(--forest); color: #fff; }
+.role-badge { font-weight: 500; }
+.role-admin { background: var(--crane); }
+.role-operator { background: var(--gold); color: #222; }
+.role-tourist { background: var(--forest); }
+.kpi { background: #fff; border-radius: var(--radius); padding: 1rem 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,.05); height: 100%; }
+.kpi .label { font-size: .8rem; color: #6c757d; text-transform: uppercase; letter-spacing: .05em; }
+.kpi .value { font-family: 'Outfit'; font-weight: 800; font-size: 1.7rem; color: var(--forest); }
+.kpi i { font-size: 1.5rem; color: var(--gold-dark); }
+.table > :not(caption) > * > * { padding: .7rem .75rem; }
+.page-head { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.page-head h1 { font-size: 1.6rem; font-weight: 800; margin: 0; }
+
+/* Auth */
+.auth-wrap { min-height: calc(100vh - 66px); display: grid; grid-template-columns: 1fr 1fr; }
+.auth-art { background: linear-gradient(160deg, rgba(20,51,38,.75), rgba(20,51,38,.95)), var(--auth-img) center/cover; color: #fff; padding: 3rem; display: flex; flex-direction: column; justify-content: flex-end; }
+.auth-form { display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.auth-form .card { width: 100%; max-width: 460px; }
+.role-pick input { display: none; }
+.role-pick label { border: 2px solid #e2e6e4; border-radius: 12px; padding: .9rem; cursor: pointer; display: block; text-align: center; }
+.role-pick input:checked + label { border-color: var(--forest); background: var(--forest-light); }
+@media (max-width: 991px) { .auth-wrap { grid-template-columns: 1fr; } .auth-art { display: none; } }
+
+/* Payments */
+.pay-method input { display: none; }
+.pay-method label { border: 2px solid #e2e6e4; border-radius: 12px; padding: 1rem; cursor: pointer; display: flex; gap: .8rem; align-items: center; background: #fff; }
+.pay-method input:checked + label { border-color: var(--forest); background: var(--forest-light); }
+.pay-logo { width: 46px; height: 46px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: .8rem; }
+.pay-logo.mtn { background: #ffcb05; color: #000; }
+.pay-logo.airtel { background: #e40000; color: #fff; }
+.pay-logo.card { background: #1a1f71; color: #fff; }
+.phone-mock { max-width: 320px; margin: auto; background: #111; border-radius: 36px; padding: 14px; box-shadow: 0 30px 60px rgba(0,0,0,.35); }
+.phone-mock .screen { background: #f4f4f4; border-radius: 26px; padding: 1.5rem 1.2rem; min-height: 460px; }
+
+/* Timeline for booking progress */
+.steps { display: flex; justify-content: space-between; position: relative; }
+.steps::before { content: ''; position: absolute; top: 16px; left: 5%; right: 5%; height: 3px; background: #dfe5e2; }
+.steps .step { position: relative; text-align: center; flex: 1; font-size: .78rem; color: #6c757d; }
+.steps .dot { width: 34px; height: 34px; border-radius: 50%; background: #dfe5e2; display: grid; place-items: center; margin: 0 auto .35rem; color: #fff; }
+.steps .step.done .dot { background: var(--forest); }
+.steps .step.done { color: var(--forest); font-weight: 600; }
+
+/* Footer */
+.p360-footer { background: var(--forest-dark); color: #fff; }
+.p360-footer a { color: rgba(255,255,255,.75); }
+.p360-footer a:hover { color: var(--gold); }
+.p360-footer li { margin-bottom: .35rem; }
+.flag-stripe { display: flex; height: 6px; }
+.flag-stripe span { flex: 1; }
+.flag-stripe span:nth-child(1) { background: #000; }
+.flag-stripe span:nth-child(2) { background: #fcdc04; }
+.flag-stripe span:nth-child(3) { background: var(--crane); }
+
+/* Admin scene editor */
+#editorPano { height: 420px; border-radius: var(--radius); overflow: hidden; }
+.cta-band { background: linear-gradient(120deg, var(--forest), #2d6a50); color: #fff; border-radius: 20px; }
+.review-card { background: #fff; border-radius: var(--radius); padding: 1.25rem; height: 100%; box-shadow: 0 4px 16px rgba(0,0,0,.05); }
+.package-card img { height: 170px; object-fit: cover; }
+.tour-wrap .pnlm-panorama-info { display: none !important; }
+.tour-wrap .tour-topbar { left: 3.2rem; }
