@@ -109,7 +109,7 @@ After editing `.env` on a live server, run `php artisan config:clear`.
 php artisan test
 ```
 
-11 feature tests cover every page for every role, access control, operator registration, the trip planner's rankings, and the full **enquiry → quote → Mobile Money payment → confirmation** flow including SMS alerts.
+13 tests (in `tests/Feature` and `tests/Unit`) cover every page for every role, access control, operator registration, the trip planner's rankings, and the full **enquiry → quote → Mobile Money payment → confirmation** flow including SMS alerts, plus Ugandan phone-number formatting and YouTube link handling.
 
 ## Project structure (the Laravel files we use)
 
@@ -157,7 +157,7 @@ public/css/pearl360.css                 the Pearl360 theme (change colours in :r
 public/js/pearl360.js                   small shared helpers
 public/vendor/                          Bootstrap, Bootstrap Icons, Leaflet, Pannellum, Chart.js
                                         (served locally, so the demo works without internet except map tiles)
-tests/Feature/                          PagesTest, BookingFlowTest, TripPlannerTest
+tests/Feature/, tests/Unit/             PagesTest, BookingFlowTest, TripPlannerTest, HelpersTest
 ```
 
 ### Database entities (proposal Table 3.3, extended)
