@@ -2,7 +2,7 @@
 
 A web-based 360° virtual tour and smart trip-planning system for Uganda's national parks. It is the implementation for the Group 12 research proposal (MUBS, Bachelor of Business Computing). The case study is the **Uganda Wildlife Authority (UWA)**.
 
-Built with **Laravel 13 (PHP 8.3+)**, **MySQL**, **Bootstrap 5**, **Pannellum** (360° viewer), **Leaflet + OpenStreetMap** (maps) and **Chart.js** (analytics). Online payments use **Flutterwave** (MTN MoMo, Airtel Money, cards). SMS goes through **Africa's Talking**.
+Built with **Laravel 12 (PHP 8.2+)**, **MySQL**, **Bootstrap 5**, **Pannellum** (360° viewer), **Leaflet + OpenStreetMap** (maps) and **Chart.js** (analytics). Online payments use **Flutterwave** (MTN MoMo, Airtel Money, cards). SMS goes through **Africa's Talking**.
 
 ## Features
 
@@ -21,7 +21,7 @@ Built with **Laravel 13 (PHP 8.3+)**, **MySQL**, **Bootstrap 5**, **Pannellum** 
 
 ## Quick start (XAMPP / Laragon / WAMP)
 
-1. Install **PHP 8.3+**, **Composer** and **MySQL** (XAMPP 8.3+ includes PHP and MySQL).
+1. Install **PHP 8.2+**, **Composer** and **MySQL**. XAMPP 8.2.12 works: enable `extension=gd`, `extension=zip`, `extension=intl` and `extension=fileinfo` in `C:\xampp\php\php.ini`, then restart Apache.
 2. In phpMyAdmin, create an empty database called `pearl360`.
 3. In the project folder, run:
 
@@ -176,3 +176,9 @@ tests/Feature/                          PagesTest, BookingFlowTest, TripPlannerT
 2. Create a MySQL database and put its details in `.env`, with `APP_ENV=production` and `APP_DEBUG=false`.
 3. Run `composer install --no-dev --optimize-autoloader`, `php artisan key:generate`, `php artisan migrate --seed --force` and `php artisan config:cache`.
 4. Make `storage/`, `bootstrap/cache/` and `public/uploads/` writable.
+
+## Troubleshooting
+
+- **"Your PHP version does not satisfy…" / Symfony needs 8.4:** you are probably running `composer update` or an old download. Run `composer install` (not update). It uses `composer.lock`, which is pinned to PHP 8.2.12 through `config.platform.php`.
+- **"Call to undefined function imagecreatetruecolor":** enable `extension=gd` in `php.ini`. The seeder uses GD to draw the placeholder images.
+- **SQLSTATE connection refused:** start MySQL in the XAMPP control panel and check the `DB_*` values in `.env`.
