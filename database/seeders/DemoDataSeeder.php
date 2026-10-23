@@ -21,9 +21,18 @@ class DemoDataSeeder extends Seeder
     {
         mt_srand(2026);
 
-        $tourists = collect([User::where('email', 'tourist@pearl360.test')->first()])
-            ->merge(User::factory()->count(12)->create())
-            ->filter();
+        // Demo tourists from a fixed list (no Faker needed, so this also works with `composer install --no-dev`).
+        $names = [
+            ['Aisha Namubiru', 'Uganda'], ['Brian Ochieng', 'Kenya'], ['Claire Dubois', 'France'], ['David Mugisha', 'Uganda'],
+            ['Emma Thompson', 'United Kingdom'], ['Faith Atim', 'Uganda'], ['Gabriel Schmidt', 'Germany'], ['Halima Nakato', 'Uganda'],
+            ['Isaac Mwesigwa', 'Uganda'], ['Julia Rossi', 'Italy'], ['Kevin Otieno', 'Kenya'], ['Lucy Chen', 'United States'],
+        ];
+        $demo = collect($names)->map(fn ($n, $i) => User::updateOrCreate(
+            ['email' => Str::slug($n[0], '.').'@demo.pearl360.test'],
+            ['name' => $n[0], 'country' => $n[1], 'phone' => '2567'.str_pad((string) (71000000 + $i * 1371), 8, '0', STR_PAD_LEFT),
+                'role' => User::ROLE_TOURIST, 'password' => UserSeeder::DEFAULT_PASSWORD, 'created_at' => now()->subDays(mt_rand(1, 170))]
+        ));
+        $tourists = collect([User::where('email', 'tourist@pearl360.test')->first()])->merge($demo)->filter();
 
         $parks = Park::all();
         $weights = ['queen-elizabeth-national-park' => 10, 'bwindi-impenetrable-national-park' => 9, 'murchison-falls-national-park' => 9, 'lake-mburo-national-park' => 6, 'kibale-national-park' => 6, 'rwenzori-mountains-national-park' => 4, 'mgahinga-gorilla-national-park' => 3, 'kidepo-valley-national-park' => 3, 'mount-elgon-national-park' => 3, 'semuliki-national-park' => 2];
