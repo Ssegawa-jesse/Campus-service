@@ -215,5 +215,6 @@ tests/Feature/, tests/Unit/             PagesTest, BookingFlowTest, TripPlannerT
 ## Troubleshooting
 
 - **"Your PHP version does not satisfy…" / Symfony needs 8.4:** you are probably running `composer update` or an old download. Run `composer install` (not update). It uses `composer.lock`, which is pinned to PHP 8.2.12 through `config.platform.php`.
-- **"Call to undefined function imagecreatetruecolor":** enable `extension=gd` in `php.ini`. The seeder uses GD to draw the placeholder images.
+- **"Call to undefined function imagecreatetruecolor":** fixed. The placeholder images now ship with the project in `public/uploads/seed`, so GD is not needed to seed. Enabling `extension=gd` in `php.ini` is still recommended for image uploads.
+- **"APPLICATION IN PRODUCTION. Are you sure…?":** your `.env` is missing `APP_ENV=local` (or says `production`). Open `.env`, set `APP_ENV=local` and `APP_DEBUG=true`, then run `php artisan config:clear`.
 - **SQLSTATE connection refused:** start MySQL in the XAMPP control panel and check the `DB_*` values in `.env`.

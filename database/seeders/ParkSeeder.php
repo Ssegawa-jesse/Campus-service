@@ -25,10 +25,7 @@ class ParkSeeder extends Seeder
             $slug = Str::slug($data['name']);
             $dir = 'uploads/seed/'.$slug;
 
-            $cover = "{$dir}/cover.jpg";
-            if (! file_exists(public_path($cover))) {
-                $images->photo(public_path($cover), $theme, $i + 11);
-            }
+            $cover = $this->image("{$dir}/cover.jpg", fn ($full) => $images->photo($full, $theme, $i + 11), 'images/placeholder-park.svg');
 
             $park = Park::updateOrCreate(['slug' => $slug], $data + ['slug' => $slug, 'cover_image' => $cover]);
 
@@ -38,10 +35,7 @@ class ParkSeeder extends Seeder
             // Gallery: two extra placeholder photos per park
             $park->media()->delete();
             foreach ([1, 2] as $n) {
-                $path = "{$dir}/gallery-{$n}.jpg";
-                if (! file_exists(public_path($path))) {
-                    $images->photo(public_path($path), $scenes[$n]['theme'] ?? $theme, ($i + 1) * 100 + $n);
-                }
+                $path = $this->image("{$dir}/gallery-{$n}.jpg", fn ($full) => $images->photo($full, $scenes[$n]['theme'] ?? $theme, ($i + 1) * 100 + $n), 'images/placeholder-park.svg');
                 $park->media()->create(['type' => 'image', 'path' => $path, 'caption' => $scenes[$n]['title'] ?? $data['name'], 'credit' => 'Placeholder – replace with your photo', 'sort_order' => $n]);
             }
 
@@ -49,10 +43,7 @@ class ParkSeeder extends Seeder
             $park->scenes()->delete();
             $created = [];
             foreach ($scenes as $s => $scene) {
-                $path = "{$dir}/pano-{$s}.jpg";
-                if (! file_exists(public_path($path))) {
-                    $images->panorama(public_path($path), $scene['theme'], ($i + 1) * 10 + $s);
-                }
+                $path = $this->image("{$dir}/pano-{$s}.jpg", fn ($full) => $images->panorama($full, $scene['theme'], ($i + 1) * 10 + $s), 'images/placeholder-pano.jpg');
                 $created[] = $park->scenes()->create([
                     'title' => $scene['title'],
                     'description' => $scene['description'],
@@ -73,6 +64,24 @@ class ParkSeeder extends Seeder
                 }
             }
         }
+    }
+
+    /**
+     * The placeholder images ship with the project in public/uploads/seed, so PHP's GD
+     * extension is NOT required. They are only redrawn if a file was deleted and GD is on;
+     * otherwise a generic placeholder is used.
+     */
+    private function image(string $path, callable $draw, string $fallback): string
+    {
+        if (file_exists(public_path($path))) {
+            return $path;
+        }
+        if (! function_exists('imagecreatetruecolor')) {
+            return $fallback;
+        }
+        $draw(public_path($path));
+
+        return $path;
     }
 
     private function parks(): array
