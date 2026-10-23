@@ -19,21 +19,31 @@ Built with **Laravel 12 (PHP 8.2+)**, **MySQL**, **Bootstrap 5**, **Pannellum** 
 | Analytics | Admin: views per park, top scenes, popular interests, bookings per park, status, 12-month trends, revenue, CSV export for Excel/SPSS. Operator: enquiries, revenue, package views |
 | User management | Roles: **admin (UWA)**, **tourist**, **tour operator**. Operators must be verified by the admin before tourists can see them |
 
-## Quick start (XAMPP / Laragon / WAMP)
+## Quick start (Windows + XAMPP), the easy way
 
-1. Install **PHP 8.2+**, **Composer** and **MySQL**. XAMPP 8.2.12 works: enable `extension=gd`, `extension=zip`, `extension=intl` and `extension=fileinfo` in `C:\xampp\php\php.ini`, then restart Apache.
-2. In phpMyAdmin, create an empty database called `pearl360`.
-3. In the project folder, run:
+1. Start **MySQL** (and Apache) in the XAMPP Control Panel.
+2. Unzip the project to a new folder.
+3. **Double-click `setup.bat`.** It:
+   - creates or repairs `.env` (it even fixes a file Notepad saved as `.env.txt`)
+   - switches to local mode and generates the app key
+   - creates the `pearl360` MySQL database
+   - creates the tables and loads the demo data
+   - starts the site and opens http://localhost:8000
+
+   Keep the black window open while you use the site.
+
+Something not working? Run **`php artisan pearl360:doctor`** in the project folder. It checks PHP, extensions, `.env`, the app key, MySQL and folder permissions, and tells you exactly what to fix. `php artisan pearl360:doctor --fix` repairs what it can.
+
+### Manual setup (any OS)
 
 ```bash
-composer install
+composer install              # skip if the vendor folder is already there
 cp .env.example .env          # Windows: copy .env.example .env
 php artisan key:generate
-php artisan migrate --seed    # creates tables, all 10 parks, 360° scenes, demo users & data
+php artisan pearl360:doctor --fix
+php artisan migrate --seed
 php artisan serve
 ```
-
-4. Open http://localhost:8000.
 
 ### Demo accounts (password `Pearl360@2026`)
 
@@ -216,5 +226,6 @@ tests/Feature/, tests/Unit/             PagesTest, BookingFlowTest, TripPlannerT
 
 - **"Your PHP version does not satisfy…" / Symfony needs 8.4:** you are probably running `composer update` or an old download. Run `composer install` (not update). It uses `composer.lock`, which is pinned to PHP 8.2.12 through `config.platform.php`.
 - **"Call to undefined function imagecreatetruecolor":** fixed. The placeholder images now ship with the project in `public/uploads/seed`, so GD is not needed to seed. Enabling `extension=gd` in `php.ini` is still recommended for image uploads.
+- **Blank "500 Server Error" page:** usually `.env` is missing or `APP_KEY` is empty. The site now shows a setup page explaining this. Run `setup.bat` or `php artisan pearl360:doctor --fix`.
 - **"APPLICATION IN PRODUCTION. Are you sure…?":** your `.env` is missing `APP_ENV=local` (or says `production`). Open `.env`, set `APP_ENV=local` and `APP_DEBUG=true`, then run `php artisan config:clear`.
 - **SQLSTATE connection refused:** start MySQL in the XAMPP control panel and check the `DB_*` values in `.env`.
