@@ -11,8 +11,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $operator = $request->user()->operator;
-        abort_unless($operator, 404);
+        $operator = $request->user()->operator; // guaranteed by the operator.profile middleware
 
         $bookings = $operator->bookings();
         $revenue = Payment::where('status', 'successful')->whereHas('booking', fn ($q) => $q->where('operator_id', $operator->id));

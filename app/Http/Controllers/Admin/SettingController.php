@@ -29,7 +29,7 @@ class SettingController extends Controller
         $data = $request->validate([
             'site_tagline' => 'nullable|string|max:200',
             'admin_email' => 'required|email',
-            'admin_phone' => ['required', 'regex:/^\+?[0-9 ]{9,15}$/'],
+            'admin_phone' => ['required', \App\Http\Controllers\AuthController::PHONE_RULE],
             'support_whatsapp' => 'nullable|string|max:20',
             'usd_rate' => 'required|numeric|min:1',
             'auto_approve_reviews' => 'nullable|boolean',

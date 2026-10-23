@@ -40,12 +40,47 @@ php artisan serve
 | Role | Email |
 |---|---|
 | Administrator (UWA) | `2400725284@mubs.ac.ug` |
+| Second administrator | `uwa.officer@pearl360.test` |
 | Tourist | `tourist@pearl360.test` |
-| Tour operator | `operator@pearl360.test` (also `nile@…`, `peaks@…`) |
+| Tour operator (approved) | `operator@pearl360.test` (also `nile@…`, `peaks@…`) |
+| Tour operator (waiting for approval) | `newoperator@pearl360.test` |
 
 > **Change the admin password** after the first login (Account settings). Set `SEED_DEMO_DATA=false` in `.env` to skip the fake bookings, reviews and views.
 
 To re-install from scratch: `php artisan migrate:fresh --seed`.
+
+## Updating an existing installation (keeps your data)
+
+If you already installed an earlier version, pull or unzip the new code over it, then run:
+
+```bash
+composer install
+php artisan migrate                              # adds operator approval + login tracking tables
+php artisan db:seed --class=ParkVideoSeeder      # adds the real park videos (safe: deletes nothing)
+php artisan view:clear
+```
+
+## Accounts, operator approval and administrators
+
+- **Registration and login are saved in the database.** Accounts live in the `users` table. Passwords are stored only as secure **bcrypt hashes**, never as plain text, so nobody (not even an admin) can read them. Every registration, login, failed login, logout and password reset is written to `login_activities`, together with the time, IP address and browser. Admins see it under **Admin → Login activity**, and each user sees their own recent sign-ins under **Account settings**.
+- **Browsers can save passwords** (the forms use the standard `autocomplete` fields). **"Keep me logged in"** is on by default.
+- **Forgot password:** the login page has a *Forgot password?* link that emails a reset link. If email is not set up yet (`MAIL_MAILER=log`), the link is written to `storage/logs/laravel.log`, or an admin can set a new password with the 🔑 button on **Admin → Users & admins**.
+- **Tour operator approval:** anyone can register as a *tourist* or a *tour operator*. A new operator account is created as **Pending approval** and appears straight away:
+  - in the **Operators awaiting approval** panel at the top of the admin dashboard, with **Approve** / **Reject** buttons
+  - as a red count on the 🔔 bell in the navbar and next to *Tour operators* in the sidebar
+  - under **Admin → Tour operators → Pending**
+
+  Every admin also gets an SMS and email. The operator is told by SMS and email when they are approved or rejected (with the reason). Their packages appear to tourists only after approval.
+- **Testing sign-up while logged in?** If you are already logged in (for example as admin) and open *Register*, you are sent back to your dashboard with a message. Log out first, or use a private/incognito window, to register a new account.
+- **More than one admin:** on **Admin → Users & admins**, change anyone's role to **Admin**, or use **Add user / admin**. You can also do it from the command line:
+  ```bash
+  php artisan pearl360:make-admin jane@uwa.go.ug --name="Jane Namuli" --phone=0772123456
+  ```
+  The last remaining admin cannot be demoted, suspended or deleted, and you cannot remove your own admin rights.
+
+## Park videos
+
+Each park has a real YouTube video on its page, plus a second one in its **Videos** section; the home page also shows a few. Videos load only when clicked, so pages stay fast on mobile data, and every video has a *Watch on YouTube* link in case the uploader blocks embedding. To change them, go to **Admin → Parks → Photos & videos**: paste any YouTube link or upload an MP4. The starting list is in `database/seeders/ParkVideoSeeder.php`.
 
 ## Adding your own photos, videos and 360° images
 
@@ -109,7 +144,7 @@ After editing `.env` on a live server, run `php artisan config:clear`.
 php artisan test
 ```
 
-13 tests (in `tests/Feature` and `tests/Unit`) cover every page for every role, access control, operator registration, the trip planner's rankings, and the full **enquiry → quote → Mobile Money payment → confirmation** flow including SMS alerts, plus Ugandan phone-number formatting and YouTube link handling.
+24 tests (in `tests/Feature` and `tests/Unit`) cover operator registration → admin approval/rejection, login records, password reset, multiple admins, park videos, every page for every role, access control, operator registration, the trip planner's rankings, and the full **enquiry → quote → Mobile Money payment → confirmation** flow including SMS alerts, plus Ugandan phone-number formatting and YouTube link handling.
 
 ## Project structure (the Laravel files we use)
 
@@ -157,7 +192,7 @@ public/css/pearl360.css                 the Pearl360 theme (change colours in :r
 public/js/pearl360.js                   small shared helpers
 public/vendor/                          Bootstrap, Bootstrap Icons, Leaflet, Pannellum, Chart.js
                                         (served locally, so the demo works without internet except map tiles)
-tests/Feature/, tests/Unit/             PagesTest, BookingFlowTest, TripPlannerTest, HelpersTest
+tests/Feature/, tests/Unit/             PagesTest, BookingFlowTest, TripPlannerTest, AccountsTest, HelpersTest
 ```
 
 ### Database entities (proposal Table 3.3, extended)

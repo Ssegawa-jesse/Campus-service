@@ -5,7 +5,8 @@
             ['admin.dashboard', 'speedometer2', 'Dashboard & analytics'],
             ['admin.parks.index', 'tree', 'Parks, media & 360°'],
             ['admin.operators.index', 'briefcase', 'Tour operators'],
-            ['admin.users.index', 'people', 'Users'],
+            ['admin.users.index', 'people', 'Users & admins'],
+            ['admin.users.activity', 'clock-history', 'Login activity'],
             ['admin.bookings.index', 'calendar-check', 'Bookings'],
             ['admin.payments.index', 'cash-coin', 'Payments'],
             ['admin.reviews.index', 'star', 'Reviews'],
@@ -38,8 +39,9 @@
         </div>
         <nav class="nav flex-column">
             @foreach ($menus as [$route, $icon, $label])
-                <a href="{{ route($route) }}" class="nav-link {{ request()->routeIs(Str::beforeLast($route, '.').'*') && $route !== 'planner.index' && $route !== 'parks.index' ? 'active' : '' }}">
+                <a href="{{ route($route) }}" class="nav-link {{ (str_starts_with($route, 'admin.users.') ? request()->routeIs($route === 'admin.users.activity' ? $route : ['admin.users.index', 'admin.users.create']) : request()->routeIs(Str::beforeLast($route, '.').'*')) && $route !== 'planner.index' && $route !== 'parks.index' ? 'active' : '' }}">
                     <i class="bi bi-{{ $icon }} me-2"></i>{{ $label }}
+                    @if ($route === 'admin.operators.index' && ($pendingOperatorCount ?? 0))<span class="badge bg-danger float-end">{{ $pendingOperatorCount }}</span>@endif
                 </a>
             @endforeach
             <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}"><i class="bi bi-person-gear me-2"></i>Account settings</a>

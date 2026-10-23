@@ -8,9 +8,21 @@
     <a href="{{ route('operator.packages.create') }}" class="btn btn-gold"><i class="bi bi-plus-lg"></i> New package</a>
 </div>
 
-@unless ($operator->is_verified)
-    <div class="alert alert-warning"><i class="bi bi-hourglass-split me-1"></i> Your account is <strong>awaiting verification</strong> by the UWA administrator. Complete your <a href="{{ route('operator.profile.edit') }}">company profile</a> (licence number, parks served) to speed this up. Tourists can't see your packages until you are verified.</div>
-@endunless
+@if ($operator->status === 'pending')
+    <div class="alert alert-warning d-flex gap-3 align-items-start">
+        <i class="bi bi-hourglass-split fs-4"></i>
+        <div><strong>Awaiting approval.</strong> Your registration was sent to the UWA administrators on {{ $operator->created_at->format('d M Y') }}. You'll receive an SMS and email when you're approved, and then your packages become visible to tourists.
+        Make sure your <a href="{{ route('operator.profile.edit') }}">company profile</a> has your licence number, contacts and the parks you serve – it speeds up approval.</div>
+    </div>
+@elseif ($operator->status === 'rejected')
+    <div class="alert alert-danger d-flex gap-3 align-items-start">
+        <i class="bi bi-x-octagon fs-4"></i>
+        <div><strong>Your application was not approved.</strong> @if ($operator->rejection_reason) Reason: {{ $operator->rejection_reason }}.@endif
+        Please update your <a href="{{ route('operator.profile.edit') }}">company profile</a> and <a href="{{ route('contact') }}">contact us</a> to be reviewed again.</div>
+    </div>
+@else
+    <div class="alert alert-success py-2 small"><i class="bi bi-patch-check-fill"></i> Approved operator{{ $operator->approved_at ? ' since '.$operator->approved_at->format('d M Y') : '' }}. Your packages are visible to tourists.</div>
+@endif
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3"><div class="kpi"><i class="bi bi-inbox"></i><div class="value">{{ $stats['pending'] }}</div><div class="label">New enquiries</div></div></div>

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SettingSeeder::class,
             ParkSeeder::class,
+            ParkVideoSeeder::class,
             UserSeeder::class,
         ]);
 

@@ -22,6 +22,7 @@ class HomeController extends Controller
             'parks' => $parks,
             'featured' => $parks->sortByDesc('views_count')->take(6),
             'hiddenGems' => $parks->sortBy('views_count')->take(3),
+            'videoParks' => $parks->filter(fn ($p) => youtube_embed($p->video_url))->sortByDesc('views_count')->take(3),
             'packages' => TourPackage::with('park', 'operator')->where('is_active', true)
                 ->whereHas('operator', fn ($q) => $q->where('is_verified', true))->latest()->take(6)->get(),
             'reviews' => Review::with('user', 'park')->where('is_approved', true)->whereNotNull('park_id')->latest()->take(3)->get(),

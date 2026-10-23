@@ -33,7 +33,7 @@ class PaymentController extends Controller
 
         $data = $request->validate([
             'method' => ['required', Rule::in(array_keys(Payment::METHODS))],
-            'phone' => ['required_unless:method,card', 'nullable', 'regex:/^\+?[0-9 ]{9,15}$/'],
+            'phone' => ['required_unless:method,card', 'nullable', \App\Http\Controllers\AuthController::PHONE_RULE],
         ]);
 
         try {

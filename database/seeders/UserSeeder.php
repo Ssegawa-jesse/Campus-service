@@ -24,6 +24,16 @@ class UserSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
+        // A second administrator – the system supports any number of admins.
+        User::updateOrCreate(['email' => 'uwa.officer@pearl360.test'], [
+            'name' => 'UWA Tourism Officer (Demo)',
+            'phone' => '256700000002',
+            'country' => 'Uganda',
+            'role' => User::ROLE_ADMIN,
+            'password' => self::DEFAULT_PASSWORD,
+            'email_verified_at' => now(),
+        ]);
+
         // Demo tourist
         User::updateOrCreate(['email' => 'tourist@pearl360.test'], [
             'name' => 'Demo Tourist', 'phone' => '256700000001', 'country' => 'Uganda',
@@ -41,6 +51,9 @@ class UserSeeder extends Seeder
             ['email' => 'peaks@pearl360.test', 'company' => 'Mountains of the Moon Treks (Demo)', 'phone' => '256700000012',
                 'parks' => ['rwenzori-mountains-national-park', 'semuliki-national-park', 'kibale-national-park'],
                 'about' => 'Demo operator for testing. Hiking and birding in the Albertine Rift.'],
+            ['email' => 'newoperator@pearl360.test', 'company' => 'Savannah Horizons Tours (Demo)', 'phone' => '256700000013', 'pending' => true,
+                'parks' => ['kidepo-valley-national-park', 'lake-mburo-national-park'],
+                'about' => 'Demo operator that has just registered and is waiting for admin approval.'],
         ];
 
         foreach ($operators as $o) {
@@ -52,10 +65,14 @@ class UserSeeder extends Seeder
             $operator = Operator::updateOrCreate(['user_id' => $user->id], [
                 'company_name' => $o['company'], 'slug' => Str::slug($o['company']),
                 'licence_no' => 'UTB-DEMO-'.$user->id, 'contact_phone' => $o['phone'], 'contact_email' => $o['email'],
-                'address' => 'Kampala, Uganda', 'about' => $o['about'], 'is_verified' => true,
+                'address' => 'Kampala, Uganda', 'about' => $o['about'], 'status' => empty($o['pending']) ? 'approved' : 'pending', 'approved_at' => empty($o['pending']) ? now() : null,
             ]);
 
             $parks = Park::whereIn('slug', $o['parks'])->get();
+            if (! empty($o['pending'])) {
+                $operator->parks()->sync($parks->pluck('id'));
+                continue; // a pending operator has no packages yet
+            }
             $operator->parks()->sync($parks->pluck('id'));
 
             $operator->packages()->delete();

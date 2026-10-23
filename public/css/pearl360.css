@@ -178,3 +178,8 @@ a { text-decoration: none; }
 .package-card img { height: 170px; object-fit: cover; }
 .tour-wrap .pnlm-panorama-info { display: none !important; }
 .tour-wrap .tour-topbar { left: 3.2rem; }
+
+/* Lightweight YouTube player */
+.yt-lite { background: #111 center/cover no-repeat; cursor: pointer; border-radius: 12px; overflow: hidden; }
+.yt-lite .yt-play { position: absolute; inset: 0; margin: auto; width: 76px; height: 54px; border-radius: 14px; background: rgba(200, 16, 46, .92); color: #fff; display: grid; place-items: center; font-size: 2rem; transition: transform .15s; }
+.yt-lite:hover .yt-play, .yt-lite:focus .yt-play { transform: scale(1.08); }

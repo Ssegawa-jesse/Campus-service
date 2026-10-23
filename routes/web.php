@@ -45,7 +45,11 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+    Route::get('/forgot-password', [AuthController::class, 'showForgot'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email')->middleware('throttle:5,1');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
@@ -94,7 +98,7 @@ Route::middleware(['auth', 'role:tourist'])->prefix('my')->name('tourist.')->gro
 | Tour operator area
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:operator'])->prefix('operator')->name('operator.')->group(function () {
+Route::middleware(['auth', 'role:operator', 'operator.profile'])->prefix('operator')->name('operator.')->group(function () {
     Route::get('/', [Operator\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [Operator\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [Operator\ProfileController::class, 'update'])->name('profile.update');
@@ -132,12 +136,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/hotspots/{hotspot}', [Admin\SceneController::class, 'destroyHotspot'])->name('hotspots.destroy');
 
     Route::get('/operators', [Admin\OperatorController::class, 'index'])->name('operators.index');
-    Route::post('/operators/{operator}/verify', [Admin\OperatorController::class, 'toggleVerify'])->name('operators.verify');
+    Route::post('/operators/{operator}/approve', [Admin\OperatorController::class, 'approve'])->name('operators.approve');
+    Route::post('/operators/{operator}/reject', [Admin\OperatorController::class, 'reject'])->name('operators.reject');
+    Route::post('/operators/{operator}/revoke', [Admin\OperatorController::class, 'revoke'])->name('operators.revoke');
 
     Route::get('/users', [Admin\UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [Admin\UserController::class, 'create'])->name('users.create');
     Route::post('/users', [Admin\UserController::class, 'store'])->name('users.store');
     Route::post('/users/{user}/toggle', [Admin\UserController::class, 'toggle'])->name('users.toggle');
+    Route::put('/users/{user}/role', [Admin\UserController::class, 'updateRole'])->name('users.role');
+    Route::put('/users/{user}/password', [Admin\UserController::class, 'resetPassword'])->name('users.password');
+    Route::get('/login-activity', [Admin\UserController::class, 'activity'])->name('users.activity');
     Route::delete('/users/{user}', [Admin\UserController::class, 'destroy'])->name('users.destroy');
 
     Route::get('/bookings', [Admin\BookingController::class, 'index'])->name('bookings.index');

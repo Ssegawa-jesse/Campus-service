@@ -8,12 +8,29 @@
     <a href="{{ route('admin.reports.export') }}" class="btn btn-outline-forest"><i class="bi bi-download"></i> Export CSV report</a>
 </div>
 
-@if ($stats['pending_operators'])
-    <div class="alert alert-warning"><i class="bi bi-person-exclamation"></i> {{ $stats['pending_operators'] }} tour operator(s) waiting for verification. <a href="{{ route('admin.operators.index') }}">Review now</a></div>
-@endif
+<div class="card border-0 shadow-sm mb-4 {{ $pendingOperators->isNotEmpty() ? 'border-start border-4 border-warning' : '' }}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0"><i class="bi bi-person-check text-gold me-1"></i> Operators awaiting approval
+                <span class="badge {{ $pendingOperators->isNotEmpty() ? 'bg-danger' : 'bg-secondary' }} ms-1">{{ $pendingOperators->count() }}</span></h5>
+            <a href="{{ route('admin.operators.index') }}" class="small">All operators</a>
+        </div>
+        @forelse ($pendingOperators as $o)
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 border-top py-2">
+                <div style="flex:1 1 320px;min-width:0">
+                    <strong>{{ $o->company_name }}</strong> <span class="small text-muted">· {{ $o->user->name }} · {{ $o->contact_phone }} · {{ $o->contact_email }}</span>
+                    <div class="small text-muted">Registered {{ $o->created_at->diffForHumans() }}{{ $o->licence_no ? ' · Licence '.$o->licence_no : ' · no licence number given' }}</div>
+                </div>
+                <div style="min-width:260px">@include('admin.operators._actions')</div>
+            </div>
+        @empty
+            <p class="text-muted small mb-0">No operators are waiting. New operator sign-ups appear here immediately, and every admin gets an SMS and email.</p>
+        @endforelse
+    </div>
+</div>
 
 <div class="row g-3 mb-4">
-    @foreach ([['tourists', 'Tourists', 'people'], ['operators', 'Operators', 'briefcase'], ['views', 'Page & 360° views', 'eye'], ['plans', 'Trip plans', 'magic'], ['bookings', 'Bookings', 'calendar-check'], ['scenes', '360° scenes', 'badge-vr'], ['parks', 'Parks', 'tree']] as [$k, $l, $i])
+    @foreach ([['tourists', 'Tourists', 'people'], ['operators', 'Operators', 'briefcase'], ['admins', 'Administrators', 'shield-lock'], ['views', 'Page & 360° views', 'eye'], ['plans', 'Trip plans', 'magic'], ['bookings', 'Bookings', 'calendar-check'], ['scenes', '360° scenes', 'badge-vr'], ['parks', 'Parks', 'tree']] as [$k, $l, $i])
         <div class="col-6 col-md-3"><div class="kpi"><i class="bi bi-{{ $i }}"></i><div class="value">{{ number_format($stats[$k]) }}</div><div class="label">{{ $l }}</div></div></div>
     @endforeach
     <div class="col-6 col-md-3"><div class="kpi"><i class="bi bi-cash-coin"></i><div class="value fs-5">{{ ugx($stats['revenue']) }}</div><div class="label">Payments received</div></div></div>
@@ -34,6 +51,25 @@
     </div></div></div>
     <div class="col-lg-5"><div class="card border-0 shadow-sm h-100"><div class="card-body">
         <h6>Booking status</h6><canvas id="statusChart" height="220"></canvas>
+    </div></div></div>
+    <div class="col-12"><div class="card border-0 shadow-sm"><div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Newest registrations</h6>
+            <span class="small text-muted">Logins today: <strong>{{ $loginsToday }}</strong> · failed: <strong class="{{ $failedToday ? 'text-danger' : '' }}">{{ $failedToday }}</strong> · <a href="{{ route('admin.users.activity') }}">Login activity</a></span>
+        </div>
+        <div class="table-responsive"><table class="table table-sm small align-middle mb-0 mt-2">
+            <thead><tr><th>Name</th><th>Email / phone</th><th>Role</th><th>Registered</th><th>Last login</th></tr></thead>
+            @foreach ($recentUsers as $u)
+                <tr>
+                    <td>{{ $u->name }}@if ($u->operator)<div class="text-muted">{{ $u->operator->company_name }}</div>@endif</td>
+                    <td>{{ $u->email }}<br><span class="text-muted">{{ $u->phone }}</span></td>
+                    <td><span class="badge role-badge role-{{ $u->role }} text-capitalize">{{ $u->role }}</span>
+                        @if ($u->operator)<span class="badge bg-{{ $u->operator->statusColor() }}">{{ $u->operator->statusLabel() }}</span>@endif</td>
+                    <td>{{ $u->created_at->diffForHumans() }}</td>
+                    <td>{{ $u->last_login_at?->diffForHumans() ?? 'never' }}</td>
+                </tr>
+            @endforeach
+        </table></div>
     </div></div></div>
     <div class="col-lg-6"><div class="card border-0 shadow-sm h-100"><div class="card-body">
         <h6>Top 360° scenes</h6>

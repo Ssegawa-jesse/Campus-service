@@ -24,16 +24,17 @@
                         <input type="radio" name="role" value="operator" id="rOperator" @checked(old('role', $role) === 'operator')>
                         <label for="rOperator"><i class="bi bi-briefcase fs-3 text-gold d-block"></i><strong>Tour operator</strong><div class="small text-muted">Operator / lodge</div></label>
                     </div>
-                    <div class="col-12"><label class="form-label">Full name</label><input name="name" value="{{ old('name') }}" class="form-control" required></div>
-                    <div class="col-md-6"><label class="form-label">Email</label><input type="email" name="email" value="{{ old('email') }}" class="form-control" required></div>
-                    <div class="col-md-6"><label class="form-label">Phone (for SMS)</label><input name="phone" value="{{ old('phone') }}" class="form-control" placeholder="2567XXXXXXXX" required></div>
+                    <div class="col-12"><label class="form-label">Full name</label><input name="name" value="{{ old('name') }}" class="form-control" required autocomplete="name"></div>
+                    <div class="col-md-6"><label class="form-label">Email</label><input type="email" name="email" value="{{ old('email') }}" class="form-control" required autocomplete="username"></div>
+                    <div class="col-md-6"><label class="form-label">Phone (for SMS)</label><input type="tel" name="phone" value="{{ old('phone') }}" class="form-control" placeholder="0772 123456" required autocomplete="tel"></div>
                     <div id="operatorFields" class="col-12 row g-3 m-0 p-0">
-                        <div class="col-md-7"><label class="form-label">Company name</label><input name="company_name" value="{{ old('company_name') }}" class="form-control"></div>
+                        <div class="col-md-7"><label class="form-label">Company name <span class="text-danger">*</span></label><input name="company_name" value="{{ old('company_name') }}" class="form-control" autocomplete="organization"></div>
+                        <div class="col-12"><div class="alert alert-warning small py-2 mb-0"><i class="bi bi-hourglass-split"></i> Operator accounts are reviewed by a UWA administrator. You can log in straight away, and your packages go live once you're approved.</div></div>
                         <div class="col-md-5"><label class="form-label">Licence no. (UTB)</label><input name="licence_no" value="{{ old('licence_no') }}" class="form-control"></div>
                     </div>
                     <div class="col-12"><label class="form-label">Country</label><input name="country" value="{{ old('country', 'Uganda') }}" class="form-control"></div>
-                    <div class="col-md-6"><label class="form-label">Password</label><input type="password" name="password" class="form-control" required minlength="8"></div>
-                    <div class="col-md-6"><label class="form-label">Confirm password</label><input type="password" name="password_confirmation" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label">Password</label><div class="input-group"><input type="password" name="password" class="form-control" required minlength="8" autocomplete="new-password" data-password><button class="btn btn-outline-secondary" type="button" data-toggle-password title="Show / hide"><i class="bi bi-eye"></i></button></div></div>
+                    <div class="col-md-6"><label class="form-label">Confirm password</label><input type="password" name="password_confirmation" class="form-control" required autocomplete="new-password" data-password></div>
                     <div class="col-12"><button class="btn btn-forest btn-lg w-100">Create account</button></div>
                 </form>
                 <p class="text-center small mt-3 mb-0">Already registered? <a href="{{ route('login') }}">Log in</a></p>

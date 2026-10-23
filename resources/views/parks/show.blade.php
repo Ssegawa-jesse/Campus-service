@@ -51,11 +51,11 @@
 
             @if ($park->video_url)
                 <h4 class="mt-4">Watch</h4>
-                <div class="ratio ratio-16x9 ratio-video mb-4">
+                <div class="mb-4">
                     @if (youtube_embed($park->video_url))
-                        <iframe src="{{ youtube_embed($park->video_url) }}" allowfullscreen loading="lazy" title="{{ $park->name }} video"></iframe>
+                        @include('partials.youtube', ['url' => $park->video_url, 'title' => $park->name])
                     @else
-                        <video src="{{ media_url($park->video_url) }}" controls preload="metadata"></video>
+                        <div class="ratio ratio-16x9 ratio-video"><video src="{{ media_url($park->video_url) }}" controls preload="metadata"></video></div>
                     @endif
                 </div>
             @endif
@@ -84,19 +84,32 @@
             </div>
             <p class="small text-muted"><i class="bi bi-info-circle"></i> Prices are indicative foreign non-resident rates in USD. East African residents and citizens pay lower rates – confirm current tariffs with UWA.</p>
 
-            @if ($park->media->isNotEmpty())
-                <h3 class="mt-4">Photos & videos</h3>
+            @php
+                $videos = $park->media->whereIn('type', ['youtube', 'video']);
+                $photos = $park->media->where('type', 'image');
+            @endphp
+            @if ($videos->isNotEmpty())
+                <h3 class="mt-4">Videos</h3>
                 <div class="row g-3 mb-4">
-                    @foreach ($park->media as $m)
-                        <div class="col-6 col-md-4">
-                            @if ($m->type === 'image')
-                                <img src="{{ $m->url() }}" data-lightbox="{{ $m->url() }}" alt="{{ $m->caption }}" class="gallery-thumb" loading="lazy">
-                            @elseif ($m->type === 'youtube')
-                                <div class="ratio ratio-16x9 ratio-video"><iframe src="{{ $m->embedUrl() }}" allowfullscreen loading="lazy" title="{{ $m->caption }}"></iframe></div>
+                    @foreach ($videos as $m)
+                        <div class="col-md-6">
+                            @if ($m->type === 'youtube')
+                                @include('partials.youtube', ['url' => $m->path, 'title' => $m->caption])
                             @else
                                 <div class="ratio ratio-16x9 ratio-video"><video src="{{ $m->url() }}" controls preload="metadata"></video></div>
+                                @if ($m->caption)<div class="small text-muted mt-1">{{ $m->caption }}</div>@endif
                             @endif
-                            @if ($m->caption)<div class="small text-muted mt-1">{{ $m->caption }}</div>@endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+            @if ($photos->isNotEmpty())
+                <h3 class="mt-4">Photos</h3>
+                <div class="row g-3 mb-4">
+                    @foreach ($photos as $m)
+                        <div class="col-6 col-md-4">
+                            <img src="{{ $m->url() }}" data-lightbox="{{ $m->url() }}" alt="{{ $m->caption }}" class="gallery-thumb" loading="lazy">
+                            @if ($m->caption)<div class="small text-muted mt-1">{{ $m->caption }}{{ $m->credit ? ' · '.$m->credit : '' }}</div>@endif
                         </div>
                     @endforeach
                 </div>

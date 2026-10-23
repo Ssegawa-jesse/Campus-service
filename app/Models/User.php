@@ -32,6 +32,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
             'sms_opt_in' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -57,6 +58,22 @@ class User extends Authenticatable
             self::ROLE_OPERATOR => 'operator.dashboard',
             default => 'tourist.dashboard',
         };
+    }
+
+    public function scopeAdmins($query)
+    {
+        return $query->where('role', self::ROLE_ADMIN)->where('is_active', true);
+    }
+
+    /** True when this user is the only active administrator left (must not be removed). */
+    public function isLastAdmin(): bool
+    {
+        return $this->isAdmin() && static::admins()->whereKeyNot($this->id)->doesntExist();
+    }
+
+    public function loginActivities(): HasMany
+    {
+        return $this->hasMany(LoginActivity::class);
     }
 
     public function operator(): HasOne

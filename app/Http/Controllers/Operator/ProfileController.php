@@ -23,7 +23,7 @@ class ProfileController extends Controller
         $data = $request->validate([
             'company_name' => 'required|string|max:150',
             'licence_no' => 'nullable|string|max:60',
-            'contact_phone' => ['required', 'regex:/^\+?[0-9 ]{9,15}$/'],
+            'contact_phone' => ['required', \App\Http\Controllers\AuthController::PHONE_RULE],
             'contact_email' => 'required|email|max:150',
             'website' => 'nullable|url|max:200',
             'address' => 'nullable|string|max:200',

@@ -36,6 +36,13 @@ if (! function_exists('youtube_embed')) {
     }
 }
 
+if (! function_exists('youtube_id')) {
+    function youtube_id(?string $url): ?string
+    {
+        return ($embed = youtube_embed($url)) ? substr($embed, -11) : null;
+    }
+}
+
 if (! function_exists('setting')) {
     function setting(string $key, mixed $default = null): mixed
     {

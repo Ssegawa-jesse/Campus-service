@@ -46,7 +46,7 @@ class BookingController extends Controller
             'tour_package_id' => 'nullable|exists:tour_packages,id',
             'travel_date' => 'required|date|after:today',
             'group_size' => 'required|integer|min:1|max:50',
-            'contact_phone' => ['required', 'regex:/^\+?[0-9 ]{9,15}$/'],
+            'contact_phone' => ['required', \App\Http\Controllers\AuthController::PHONE_RULE],
             'message' => 'nullable|string|max:2000',
         ]);
 

@@ -92,6 +92,22 @@
     </div>
 </section>
 
+@if ($videoParks->isNotEmpty())
+<section class="container-xl py-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div><div class="section-kicker">Watch before you go</div><h2 class="section-title mb-0">Uganda's parks on video</h2></div>
+        <a href="{{ route('parks.index') }}" class="btn btn-outline-forest">More parks</a>
+    </div>
+    <div class="row g-4">
+        @foreach ($videoParks as $park)
+            <div class="col-md-4">
+                @include('partials.youtube', ['url' => $park->video_url, 'title' => $park->name])
+            </div>
+        @endforeach
+    </div>
+</section>
+@endif
+
 @if ($packages->isNotEmpty())
 <section class="bg-white py-5">
     <div class="container-xl">

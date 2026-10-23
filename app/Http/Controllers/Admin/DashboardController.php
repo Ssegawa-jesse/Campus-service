@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\LoginActivity;
 use App\Models\Operator;
 use App\Models\Park;
 use App\Models\Payment;
@@ -39,7 +40,8 @@ class DashboardController extends Controller
             'stats' => [
                 'tourists' => User::where('role', 'tourist')->count(),
                 'operators' => Operator::count(),
-                'pending_operators' => Operator::where('is_verified', false)->count(),
+                'pending_operators' => Operator::pending()->count(),
+                'admins' => User::admins()->count(),
                 'parks' => Park::count(),
                 'scenes' => Scene::count(),
                 'views' => ViewLog::count(),
@@ -54,6 +56,10 @@ class DashboardController extends Controller
             'interests' => collect($interests)->mapWithKeys(fn ($v, $k) => [Park::INTERESTS[$k] ?? $k => $v]),
             'trend' => $trend,
             'recentBookings' => Booking::with('tourist', 'park', 'operator')->latest()->take(6)->get(),
+            'pendingOperators' => Operator::pending()->with('user')->latest()->get(),
+            'recentUsers' => User::with('operator')->latest()->take(8)->get(),
+            'loginsToday' => LoginActivity::where('event', 'login')->where('created_at', '>=', now()->startOfDay())->count(),
+            'failedToday' => LoginActivity::where('event', 'failed')->where('created_at', '>=', now()->startOfDay())->count(),
         ]);
     }
 

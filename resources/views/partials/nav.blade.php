@@ -18,6 +18,12 @@
             </ul>
             <div class="d-flex align-items-center gap-2">
                 @auth
+                    @if (auth()->user()->isAdmin())
+                        <a href="{{ route('admin.operators.index', ['status' => 'pending']) }}" class="btn btn-sm btn-link text-forest position-relative me-1" title="{{ $pendingOperatorCount }} operator(s) awaiting approval">
+                            <i class="bi bi-bell fs-5"></i>
+                            @if ($pendingOperatorCount)<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ $pendingOperatorCount }}</span>@endif
+                        </a>
+                    @endif
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-forest dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
                             <img src="{{ media_url(auth()->user()->avatar, 'images/avatar.svg') }}" class="rounded-circle" width="26" height="26" alt="">

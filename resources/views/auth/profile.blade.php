@@ -29,4 +29,18 @@
         </form>
     </div>
 </div>
+
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-body p-4">
+        <h5 class="mb-1"><i class="bi bi-clock-history text-gold"></i> Recent sign-in activity</h5>
+        <p class="small text-muted">If you see a login you don't recognise, change your password above.</p>
+        <table class="table table-sm small mb-0">
+            @forelse ($activities as $a)
+                <tr><td>{{ $a->created_at->format('d M Y H:i') }}</td><td><span class="badge bg-{{ $a->color() }}">{{ $a->label() }}</span></td><td class="text-muted">{{ $a->ip }}</td><td class="text-muted">{{ Str::limit($a->user_agent, 50) }}</td></tr>
+            @empty
+                <tr><td class="text-muted">No activity recorded yet.</td></tr>
+            @endforelse
+        </table>
+    </div>
+</div>
 @endsection

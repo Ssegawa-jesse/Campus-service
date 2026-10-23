@@ -40,10 +40,16 @@ class NotificationService
         $this->smsUser($user, 'Welcome to '.config('pearl360.name').'! Explore Uganda\'s parks in 360° and plan your safari.');
 
         if ($user->isOperator()) {
-            $this->email($this->adminEmail(), 'New tour operator awaiting verification', [
-                "{$user->name} ({$user->email}) registered as a tour operator and needs verification.",
-            ], route('admin.operators.index'), 'Review operators');
-            $this->sms->send($this->adminPhone(), "Pearl360: new operator {$user->name} awaiting verification.");
+            $company = $user->operator?->company_name ?? $user->name;
+            $this->notifyAdmins('New tour operator awaiting approval', [
+                "{$company} ({$user->name}, {$user->email}, {$user->phone}) registered as a tour operator.",
+                'Open the admin dashboard to approve or reject them.',
+            ], route('admin.operators.index', ['status' => 'pending']), 'Review now',
+                "Pearl360: new operator {$company} is awaiting your approval.");
+        } else {
+            $this->notifyAdmins('New tourist registered', [
+                "{$user->name} ({$user->email}) created a tourist account.",
+            ], route('admin.users.index'), 'View users');
         }
     }
 
@@ -64,7 +70,7 @@ class NotificationService
         ], route('tourist.bookings.show', $b), 'View booking');
         $this->smsUser($b->tourist, "Pearl360: enquiry {$b->reference} sent to {$b->operator->company_name}. We'll notify you when they reply.");
 
-        $this->sms->send($this->adminPhone(), "Pearl360 admin: new enquiry {$b->reference} ({$b->park->name}) by {$b->tourist->name}.");
+        $this->notifyAdmins(null, [], null, null, "Pearl360 admin: new enquiry {$b->reference} ({$b->park->name}) by {$b->tourist->name}.");
     }
 
     public function bookingUpdated(Booking $booking): void
@@ -113,26 +119,58 @@ class NotificationService
         ], route('operator.bookings.show', $b), 'Confirm trip');
         $this->sms->send($b->operator->contact_phone, "Pearl360: {$b->reference} PAID {$amount}. Please confirm the trip.");
 
-        $this->email($this->adminEmail(), "Payment received {$amount}", [
+        $this->notifyAdmins("Payment received {$amount}", [
             "Booking {$b->reference} ({$b->park->name}) paid via {$payment->methodLabel()}.",
-        ], route('admin.payments.index'), 'View payments');
-        $this->sms->send($this->adminPhone(), "Pearl360 admin: {$amount} received for {$b->reference}.");
+        ], route('admin.payments.index'), 'View payments', "Pearl360 admin: {$amount} received for {$b->reference}.");
     }
 
     public function operatorVerified(\App\Models\Operator $operator): void
     {
-        $this->email($operator->contact_email, 'Your operator account is verified', [
-            "Congratulations! {$operator->company_name} is now verified on ".config('pearl360.name').'. Tourists can now send you booking enquiries.',
+        $this->email($operator->contact_email, 'Your operator account is approved', [
+            "Congratulations! {$operator->company_name} has been approved on ".config('pearl360.name').'. Your packages are now visible and tourists can send you booking enquiries.',
         ], route('operator.dashboard'), 'Open dashboard');
-        $this->sms->send($operator->contact_phone, "Pearl360: {$operator->company_name} is now VERIFIED. You can receive bookings.");
+        $this->sms->send($operator->contact_phone, "Pearl360: {$operator->company_name} is now APPROVED. You can receive bookings.");
+    }
+
+    public function operatorRejected(\App\Models\Operator $operator): void
+    {
+        $this->email($operator->contact_email, 'Your operator application was not approved', [
+            "Unfortunately {$operator->company_name} was not approved on ".config('pearl360.name').'.',
+            $operator->rejection_reason ? "Reason: {$operator->rejection_reason}" : null,
+            'Update your company profile (licence number, contacts, parks served) and contact us to be reviewed again.',
+        ], route('operator.profile.edit'), 'Update profile');
+        $this->sms->send($operator->contact_phone, "Pearl360: {$operator->company_name} was not approved. Check your email for the reason.");
     }
 
     public function contactReceived(array $data): void
     {
-        $this->email($this->adminEmail(), 'Contact form: '.$data['subject'], [
+        $this->notifyAdmins('Contact form: '.$data['subject'], [
             "From: {$data['name']} <{$data['email']}> ".($data['phone'] ?? ''),
             $data['message'],
         ], route('admin.messages.index'), 'Open inbox');
+    }
+
+    /**
+     * Alert EVERY active administrator (there can be several) plus the main contact in Settings.
+     * Pass a null subject to send SMS only, or a null SMS to send email only.
+     */
+    public function notifyAdmins(?string $subject, array $lines, ?string $url, ?string $action, ?string $sms = null): void
+    {
+        $admins = User::admins()->get(['id', 'email', 'phone', 'sms_opt_in']);
+        $emails = $admins->pluck('email')->push($this->adminEmail())->filter()->map(fn ($e) => strtolower($e))->unique();
+        $phones = $admins->filter(fn ($a) => $a->sms_opt_in)->pluck('phone')->push($this->adminPhone())
+            ->filter()->map(fn ($p) => $this->sms->normalise($p))->filter()->unique();
+
+        if ($subject) {
+            foreach ($emails as $email) {
+                $this->email($email, $subject, $lines, $url, $action);
+            }
+        }
+        if ($sms) {
+            foreach ($phones as $phone) {
+                $this->sms->send($phone, $sms);
+            }
+        }
     }
 
     private function smsUser(User $user, string $message): void

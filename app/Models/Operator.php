@@ -11,17 +11,61 @@ class Operator extends Model
 {
     protected $fillable = [
         'user_id', 'company_name', 'slug', 'licence_no', 'contact_phone', 'contact_email', 'website',
-        'address', 'about', 'logo', 'is_verified',
+        'address', 'about', 'logo', 'is_verified', 'status', 'approved_at', 'approved_by', 'rejection_reason',
+    ];
+
+    public const STATUSES = [
+        'pending' => ['Pending approval', 'warning'],
+        'approved' => ['Approved', 'success'],
+        'rejected' => ['Rejected', 'danger'],
     ];
 
     protected function casts(): array
     {
-        return ['is_verified' => 'boolean'];
+        return ['is_verified' => 'boolean', 'approved_at' => 'datetime'];
     }
 
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    protected static function booted(): void
+    {
+        // Keep the old is_verified flag in step with the approval status.
+        static::saving(function (Operator $operator) {
+            $operator->status ??= $operator->is_verified ? 'approved' : 'pending';
+            if ($operator->isDirty('status')) {
+                $operator->is_verified = $operator->status === 'approved';
+            } elseif ($operator->isDirty('is_verified')) {
+                $operator->status = $operator->is_verified ? 'approved' : 'pending';
+            }
+        });
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->status][0] ?? ucfirst((string) $this->status);
+    }
+
+    public function statusColor(): string
+    {
+        return self::STATUSES[$this->status][1] ?? 'secondary';
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function user(): BelongsTo

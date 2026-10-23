@@ -38,3 +38,28 @@ window.P360 = {
         body: JSON.stringify(data),
     }),
 };
+
+// Show / hide password fields: <button data-toggle-password> next to <input data-password>
+document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-toggle-password]');
+    if (!btn) return;
+    const form = btn.closest('form');
+    const fields = form.querySelectorAll('input[data-password]');
+    const show = fields[0]?.type === 'password';
+    fields.forEach(f => f.type = show ? 'text' : 'password');
+    btn.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+});
+
+// Lightweight YouTube embeds: swap the thumbnail for the real player on click / Enter.
+function playYouTube(el) {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${el.dataset.yt}?autoplay=1&rel=0`;
+    iframe.title = el.dataset.title || 'Video';
+    iframe.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+    iframe.allowFullscreen = true;
+    el.replaceChildren(iframe);
+    el.style.backgroundImage = 'none';
+    el.removeAttribute('role');
+}
+document.addEventListener('click', e => { const el = e.target.closest('[data-yt]'); if (el && !el.querySelector('iframe')) playYouTube(el); });
+document.addEventListener('keydown', e => { const el = e.target.closest?.('[data-yt]'); if (el && (e.key === 'Enter' || e.key === ' ') && !el.querySelector('iframe')) { e.preventDefault(); playYouTube(el); } });
