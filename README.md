@@ -1,6 +1,6 @@
 # SmartLib — MUBS Library Management System
 
-A web-based Library Management System for **Makerere University Business School (MUBS) Library**, built with **Laravel 13** (Group 12 proposal).
+A web-based Library Management System for **Makerere University Business School (MUBS) Library**, built with **Laravel 12** (PHP 8.2+) (Group 12 proposal).
 It provides an online catalogue, QR code borrowing and returning, reservations with a waiting list, SMS and email reminders, overdue fines paid with Mobile Money, past papers, **public book recommendations** and reports.
 
 ## Features
@@ -24,7 +24,7 @@ Roles: **Guest** (search only) · **Member** · **Librarian** · **Administrator
 
 ## Requirements
 
-- PHP 8.3+ with `pdo_sqlite` or `pdo_mysql`, `mbstring`, `fileinfo`, `gd` (XAMPP/Laragon on Windows is fine)
+- PHP 8.2+ with `pdo_sqlite` or `pdo_mysql`, `mbstring`, `fileinfo`, `gd` (XAMPP/Laragon on Windows is fine)
 - Composer
 - MySQL 8 / MariaDB (or SQLite for quick testing)
 

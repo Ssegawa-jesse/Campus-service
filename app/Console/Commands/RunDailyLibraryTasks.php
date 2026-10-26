@@ -6,14 +6,14 @@ use App\Models\Loan;
 use App\Services\CirculationService;
 use App\Services\NotificationService;
 use App\Support\LibrarySettings;
-use Illuminate\Console\Attributes\Description;
-use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('library:daily')]
-#[Description('Send due-date reminders and overdue notices, update fines and expire uncollected reservations')]
 class RunDailyLibraryTasks extends Command
 {
+    protected $signature = 'library:daily';
+
+    protected $description = 'Send due-date reminders and overdue notices, update fines and expire uncollected reservations';
+
     public function handle(CirculationService $circulation, NotificationService $notifier): int
     {
         $library = LibrarySettings::get('library_name');
