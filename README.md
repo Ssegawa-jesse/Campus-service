@@ -24,7 +24,7 @@ Roles: **Guest** (search only) · **Member** · **Librarian** · **Administrator
 
 ## Requirements
 
-- PHP 8.2+ with `pdo_sqlite` or `pdo_mysql`, `mbstring`, `fileinfo`, `gd` (XAMPP/Laragon on Windows is fine)
+- PHP 8.2+ with `pdo_sqlite` or `pdo_mysql`, `mbstring`, `fileinfo` (XAMPP/Laragon on Windows is fine)
 - Composer
 - MySQL 8 / MariaDB (or SQLite for quick testing)
 

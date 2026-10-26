@@ -8,7 +8,7 @@
             <small>Library membership card</small>
         </div>
         <div class="card-body d-flex gap-3 align-items-center">
-            <div>{!! QrCode::size(130)->margin(0)->generate($member->member_no) !!}</div>
+            <div>{!! \App\Support\Qr::svg($member->member_no, 130) !!}</div>
             <div>
                 <div class="fw-bold">{{ $member->user->name }}</div>
                 <div class="small">{{ ucfirst($member->type) }}@if($member->programme)<br>{{ $member->programme }}@endif</div>

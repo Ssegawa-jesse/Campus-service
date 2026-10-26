@@ -24,7 +24,7 @@
         <tbody>
         @forelse($book->copies as $copy)
             <tr>
-                <td>{!! QrCode::size(48)->margin(0)->generate($copy->code) !!}</td>
+                <td>{!! \App\Support\Qr::svg($copy->code, 48) !!}</td>
                 <td><code>{{ $copy->code }}</code></td>
                 <td colspan="3">
                     <form method="POST" action="{{ route('admin.copies.update', $copy) }}" class="row g-1">@csrf @method('PUT')

@@ -49,6 +49,15 @@ class PagesTest extends TestCase
         }
     }
 
+    public function test_qr_codes_render_without_gd(): void
+    {
+        $member = User::where('email', 'student@mubs.ac.ug')->first();
+        $librarian = User::where('email', 'librarian@mubs.ac.ug')->first();
+
+        $this->actingAs($member)->get('/my/card')->assertOk()->assertSee('<svg', false);
+        $this->actingAs($librarian)->get('/admin/copies/labels?book='.Book::first()->id)->assertOk()->assertSee('<svg', false);
+    }
+
     public function test_members_cannot_open_staff_pages(): void
     {
         $user = User::where('email', 'student@mubs.ac.ug')->first();

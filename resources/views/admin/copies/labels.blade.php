@@ -18,7 +18,7 @@
     @foreach($copies as $copy)
         <div class="label">
             <div class="title">{{ Str::limit($copy->book->title, 50) }}</div>
-            {!! QrCode::size(110)->margin(1)->generate($copy->code) !!}
+            {!! \App\Support\Qr::svg($copy->code, 110, 1) !!}
             <div><code>{{ $copy->code }}</code></div>
             <div>{{ $copy->shelf_location }}</div>
         </div>
