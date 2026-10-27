@@ -63,8 +63,7 @@ class Book extends Model
 
     public function coverUrl(): ?string
     {
-        // asset() follows the address in the browser, so images work on localhost and 127.0.0.1 alike.
-        return $this->cover_image ? asset('storage/'.$this->cover_image) : null;
+        return $this->cover_image ? media_url($this->cover_image) : null;
     }
 
     public function shelfLocations(): string

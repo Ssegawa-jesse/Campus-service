@@ -116,7 +116,7 @@ class BookController extends Controller
             'category_id' => ['nullable', 'exists:categories,id'],
             'subject' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'cover' => ['nullable', 'image', 'max:2048'],
+            'cover' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
         ]);
 
         if ($request->hasFile('cover')) {

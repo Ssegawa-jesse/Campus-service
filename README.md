@@ -58,7 +58,6 @@ Then create the tables, load demo data and run the app:
 
 ```bash
 php artisan migrate --seed
-php artisan storage:link
 php artisan serve
 ```
 

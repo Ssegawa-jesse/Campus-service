@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\Member\FinePaymentController;
 use App\Http\Controllers\Member\LoanController;
 use App\Http\Controllers\Member\ReservationController;
@@ -17,6 +18,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public pages: anyone (guests included) can search the catalogue, browse resources and see recommendations.
 Route::get('/', HomeController::class)->name('home');
+Route::get('/media/{folder}/{file}', MediaController::class)
+    ->where(['folder' => 'covers|photos', 'file' => '[A-Za-z0-9][A-Za-z0-9._-]*\.(jpe?g|png|webp|gif)'])
+    ->name('media');
 Route::get('/catalogue', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/catalogue/{book}', [CatalogController::class, 'show'])->name('catalog.show');
 Route::get('/resources', [ResourceController::class, 'index'])->name('resources.index');

@@ -44,7 +44,7 @@ class User extends Authenticatable
 
     public function photoUrl(): ?string
     {
-        return $this->photo ? asset('storage/'.$this->photo) : null;
+        return $this->photo ? media_url($this->photo) : null;
     }
 
     /** Store a new profile picture, replacing the old one. */
