@@ -28,16 +28,19 @@ class DatabaseSeeder extends Seeder
         $librarian = User::create(['name' => 'Circulation Desk', 'email' => 'librarian@mubs.ac.ug', 'phone' => '0700000002', 'password' => 'password', 'role' => 'librarian']);
 
         $people = [
-            ['Wamala Adrian', 'student@mubs.ac.ug', '0772000001', '2400720657', 'student', 'Bachelor of Business Computing'],
-            ['Namiiro Bronia', 'bronia@mubs.ac.ug', '0772000002', '2400718586', 'student', 'Bachelor of Business Computing'],
-            ['Ainembabazi Agatha', 'agatha@mubs.ac.ug', '0772000003', '2400702953', 'student', 'Bachelor of Commerce'],
-            ['Katusabe Brenda', 'brenda@mubs.ac.ug', '0772000004', '2400705499', 'student', 'Bachelor of Procurement'],
-            ['Dr. Okello James', 'lecturer@mubs.ac.ug', '0772000005', 'STF0001', 'staff', 'Faculty of Computing and Informatics'],
+            ['Wamala Adrian', 'student@mubs.ac.ug', '0772000001', '2400720657', 'student', 'Bachelor of Business Computing', '2004-03-14', 2],
+            ['Namiiro Bronia', 'bronia@mubs.ac.ug', '0772000002', '2400718586', 'student', 'Bachelor of Business Computing', '2005-07-22', 2],
+            ['Ainembabazi Agatha', 'agatha@mubs.ac.ug', '0772000003', '2400702953', 'student', 'Bachelor of Commerce', '2003-11-02', 3],
+            ['Katusabe Brenda', 'brenda@mubs.ac.ug', '0772000004', '2400705499', 'student', 'Bachelor of Procurement and Supply Chain Management', '2006-01-30', 1],
+            ['Dr. Okello James', 'lecturer@mubs.ac.ug', '0772000005', 'STF0001', 'staff', 'Faculty of Computing and Informatics', '1982-05-18', null],
         ];
         $members = collect($people)->map(function ($p) {
             $user = User::create(['name' => $p[0], 'email' => $p[1], 'phone' => $p[2], 'password' => 'password', 'role' => 'member']);
 
-            return $user->member()->create(['member_no' => $p[3], 'type' => $p[4], 'programme' => $p[5], 'expiry_date' => now()->addYear()]);
+            return $user->member()->create([
+                'member_no' => $p[3], 'type' => $p[4], 'programme' => $p[5],
+                'date_of_birth' => $p[6], 'year_of_study' => $p[7], 'expiry_date' => now()->addYear(),
+            ]);
         });
 
         $categories = collect(['Accounting & Finance', 'Business Computing', 'Management', 'Marketing', 'Economics', 'Procurement & Logistics', 'Law', 'Research Methods'])
@@ -69,6 +72,11 @@ class DatabaseSeeder extends Seeder
                 'category_id' => $categories[$category]->id, 'subject' => $category,
                 'description' => "{$title} ({$edition} edition) — a core text for {$category} courses at MUBS.",
             ]);
+            $cover = database_path("seeders/covers/{$isbn}.jpg");
+            if (is_file($cover)) {
+                Storage::disk('public')->put("covers/{$isbn}.jpg", file_get_contents($cover));
+                $book->update(['cover_image' => "covers/{$isbn}.jpg"]);
+            }
             $book->authors()->sync(collect(explode(',', $authors))->map(fn ($a) => Author::firstOrCreate(['name' => trim($a)])->id));
             for ($i = 1; $i <= $copies; $i++) {
                 $book->copies()->create(['code' => sprintf('BK-%03d-%02d', $book->id, $i), 'shelf_location' => "Shelf {$shelf}", 'condition' => 'good']);

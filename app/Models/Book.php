@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Book extends Model
 {
@@ -36,6 +36,11 @@ class Book extends Model
         return $this->hasMany(Copy::class)->where('status', 'available');
     }
 
+    public function loans(): HasManyThrough
+    {
+        return $this->hasManyThrough(Loan::class, Copy::class);
+    }
+
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
@@ -58,7 +63,8 @@ class Book extends Model
 
     public function coverUrl(): ?string
     {
-        return $this->cover_image ? Storage::disk('public')->url($this->cover_image) : null;
+        // asset() follows the address in the browser, so images work on localhost and 127.0.0.1 alike.
+        return $this->cover_image ? asset('storage/'.$this->cover_image) : null;
     }
 
     public function shelfLocations(): string

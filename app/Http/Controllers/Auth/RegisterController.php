@@ -30,12 +30,11 @@ class RegisterController extends Controller
             'phone' => ['required', 'string', 'regex:/^\+?[0-9 ]{9,15}$/'],
             'type' => ['required', Rule::in(['student', 'staff'])],
             'member_no' => ['nullable', 'string', 'max:30', 'unique:members,member_no'],
-            'programme' => ['nullable', 'string', 'max:255'],
             'password' => ['required', 'confirmed', Password::min(8)],
-        ], [
+        ] + Member::profileRules(), [
             'phone.regex' => 'Enter a valid phone number, e.g. 0772123456.',
             'member_no.unique' => 'This student/staff number is already registered.',
-        ]);
+        ] + Member::profileMessages());
 
         $user = DB::transaction(function () use ($data) {
             $user = User::create([
@@ -49,12 +48,16 @@ class RegisterController extends Controller
             $user->member()->create([
                 'member_no' => ($data['member_no'] ?? null) ?: Member::generateNumber($data['type']),
                 'type' => $data['type'],
-                'programme' => $data['programme'] ?? null,
+                'programme' => $data['programme'],
+                'date_of_birth' => $data['date_of_birth'],
+                'year_of_study' => $data['type'] === 'student' ? $data['year_of_study'] : null,
                 'expiry_date' => now()->addYear(),
             ]);
 
             return $user;
         });
+
+        $user->replacePhoto($request->file('photo'));
 
         Auth::login($user);
         $request->session()->regenerate();

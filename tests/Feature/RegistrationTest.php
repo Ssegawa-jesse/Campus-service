@@ -19,6 +19,8 @@ class RegistrationTest extends TestCase
             'type' => 'student',
             'member_no' => '2400799999',
             'programme' => 'BBC',
+            'date_of_birth' => '2004-05-01',
+            'year_of_study' => 2,
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
         ])->assertRedirect('/dashboard');
@@ -34,6 +36,7 @@ class RegistrationTest extends TestCase
     {
         $this->post('/register', [
             'name' => 'Staff Person', 'email' => 'staff@example.com', 'phone' => '0701234567', 'type' => 'staff',
+            'programme' => 'Faculty of Computing', 'date_of_birth' => '1985-01-01',
             'password' => 'secret123', 'password_confirmation' => 'secret123',
         ])->assertRedirect('/dashboard');
 
@@ -47,7 +50,7 @@ class RegistrationTest extends TestCase
         $this->post('/register', [
             'name' => '', 'email' => 'taken@example.com', 'phone' => 'abc', 'type' => 'alien',
             'password' => 'short', 'password_confirmation' => 'different',
-        ])->assertSessionHasErrors(['name', 'email', 'phone', 'type', 'password']);
+        ])->assertSessionHasErrors(['name', 'email', 'phone', 'type', 'password', 'programme', 'date_of_birth']);
     }
 
     public function test_login_and_suspended_accounts(): void

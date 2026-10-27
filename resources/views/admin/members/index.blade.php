@@ -2,9 +2,9 @@
 @section('title', 'Members')
 @section('sidebar') @include('partials.admin-nav') @endsection
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Members</h3>
-    <a href="{{ route('admin.members.create') }}" class="btn btn-lib"><i class="bi bi-person-plus"></i> Register member</a>
+<div class="page-title">
+    <h3>Members</h3>
+    <a href="{{ route('admin.members.create') }}" class="btn btn-primary"><i class="bi bi-person-plus"></i> Register member</a>
 </div>
 <form class="row g-2 mb-3">
     <div class="col-md-8"><input type="search" name="q" value="{{ request('q') }}" class="form-control" placeholder="Name, number, email or phone"></div>
@@ -18,7 +18,8 @@
         @forelse($members as $m)
             <tr>
                 <td><code>{{ $m->member_no }}</code></td>
-                <td><a href="{{ route('admin.members.show', $m) }}">{{ $m->user->name }}</a><br><small class="text-muted">{{ $m->user->email }}</small></td>
+                <td><div class="d-flex align-items-center gap-2">@include('partials.avatar', ['user' => $m->user, 'size' => 38])
+                    <div><a href="{{ route('admin.members.show', $m) }}" class="fw-medium">{{ $m->user->name }}</a><br><small class="text-muted">{{ $m->programme ?: $m->user->email }}@if($m->year_of_study) · Year {{ $m->year_of_study }}@endif</small></div></div></td>
                 <td>{{ ucfirst($m->type) }}</td><td>{{ $m->user->phone }}</td>
                 <td>{{ $m->active_loans_count }} / {{ $m->loanLimit() }}</td>
                 <td><span class="badge bg-{{ $m->user->isActive() ? 'success' : 'danger' }}">{{ ucfirst($m->user->status) }}</span>@if($m->isExpired()) <span class="badge bg-secondary">Expired</span>@endif</td>

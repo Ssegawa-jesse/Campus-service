@@ -18,7 +18,7 @@ class CatalogController extends Controller
             ->when($request->query('availability') === 'available', fn ($q) => $q->has('availableCopies'))
             ->when($request->query('availability') === 'unavailable', fn ($q) => $q->doesntHave('availableCopies'))
             ->orderBy('title')
-            ->paginate(12)
+            ->paginate(18)
             ->withQueryString();
 
         return view('catalog.index', [

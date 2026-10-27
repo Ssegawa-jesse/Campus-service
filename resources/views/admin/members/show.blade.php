@@ -3,9 +3,13 @@
 @section('sidebar') @include('partials.admin-nav') @endsection
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <div>
-        <h3 class="mb-0">{{ $member->user->name }} <span class="badge bg-{{ $member->user->isActive() ? 'success' : 'danger' }} fs-6">{{ ucfirst($member->user->status) }}</span></h3>
-        <span class="text-muted"><code>{{ $member->member_no }}</code> · {{ ucfirst($member->type) }} · {{ $member->user->email }} · {{ $member->user->phone }}@if($member->programme) · {{ $member->programme }}@endif</span>
+    <div class="d-flex align-items-center gap-3">
+        @include('partials.avatar', ['user' => $member->user, 'size' => 72, 'class' => 'avatar-ring'])
+        <div>
+            <h3 class="mb-0">{{ $member->user->name }} <span class="badge bg-{{ $member->user->isActive() ? 'success' : 'danger' }} fs-6">{{ ucfirst($member->user->status) }}</span></h3>
+            <div class="text-muted small"><code>{{ $member->member_no }}</code> · {{ ucfirst($member->type) }}@if($member->programme) · {{ $member->programme }}@endif @if($member->year_of_study) · Year {{ $member->year_of_study }}@endif @if($member->age() !== null) · {{ $member->age() }} years old @endif</div>
+            <div class="text-muted small"><i class="bi bi-envelope"></i> {{ $member->user->email }} · <i class="bi bi-telephone"></i> {{ $member->user->phone }}</div>
+        </div>
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('admin.members.card', $member) }}" class="btn btn-outline-primary"><i class="bi bi-person-vcard"></i> Card</a>

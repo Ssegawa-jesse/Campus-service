@@ -29,8 +29,12 @@ class DashboardController extends Controller
                     'unpaid_fines' => (int) Fine::where('status', 'unpaid')->sum('amount'),
                     'suggestions' => BookSuggestion::where('status', 'pending')->count(),
                 ],
-                'overdueLoans' => Loan::overdue()->with('member.user', 'copy.book')->orderBy('due_at')->take(8)->get(),
-                'recentLoans' => Loan::with('member.user', 'copy.book')->latest('issued_at')->take(8)->get(),
+                'overdueLoans' => Loan::overdue()->with('member.user', 'copy.book.authors')->orderBy('due_at')->take(6)->get(),
+                'recentLoans' => Loan::with('member.user', 'copy.book.authors')->latest('issued_at')->take(6)->get(),
+                'topBooks' => Book::with('authors')->withCount('loans')->orderByDesc('loans_count')->take(5)->get(),
+                'newMembers' => Member::with('user')->latest()->take(5)->get(),
+                'activity' => $this->activityChart(),
+                'copyStatus' => Copy::selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
             ]);
         }
 
@@ -39,11 +43,27 @@ class DashboardController extends Controller
 
         return view('member.dashboard', [
             'member' => $member,
-            'loans' => $member->activeLoans()->with('copy.book')->orderBy('due_at')->get(),
-            'reservations' => $member->reservations()->whereIn('status', ['waiting', 'ready'])->with('book')->get(),
+            'loans' => $member->activeLoans()->with('copy.book.authors')->orderBy('due_at')->get(),
+            'reservations' => $member->reservations()->whereIn('status', ['waiting', 'ready'])->with('book.authors')->get(),
+            'borrowedTotal' => $member->loans()->count(),
+            'forYou' => Book::with('authors')->withCount(['copies', 'availableCopies'])->has('availableCopies')
+                ->whereNotIn('id', $member->loans()->join('copies', 'copies.id', '=', 'loans.copy_id')->select('copies.book_id'))
+                ->inRandomOrder()->take(6)->get(),
             'owed' => $member->outstandingFines(),
             'blocks' => $member->borrowingBlocks(),
             'suggestions' => $user->suggestions()->latest()->take(5)->get(),
         ]);
+    }
+
+    /** Loans issued and returned per day over the last 14 days. */
+    protected function activityChart(): array
+    {
+        $days = collect(range(13, 0))->map(fn ($i) => now()->subDays($i)->startOfDay());
+
+        return [
+            'labels' => $days->map(fn ($d) => $d->format('d M'))->all(),
+            'issued' => $days->map(fn ($d) => Loan::whereBetween('issued_at', [$d, $d->copy()->endOfDay()])->count())->all(),
+            'returned' => $days->map(fn ($d) => Loan::whereBetween('returned_at', [$d, $d->copy()->endOfDay()])->count())->all(),
+        ];
     }
 }

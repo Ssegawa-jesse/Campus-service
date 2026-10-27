@@ -2,8 +2,8 @@
 @section('title', 'Books')
 @section('sidebar') @include('partials.admin-nav') @endsection
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Books</h3>
+<div class="page-title">
+    <h3>Books</h3>
     <a href="{{ route('admin.books.create') }}" class="btn btn-lib"><i class="bi bi-plus-lg"></i> Add book</a>
 </div>
 <form class="mb-3"><input type="search" name="q" value="{{ request('q') }}" class="form-control" placeholder="Search title, author, ISBN…"></form>
@@ -13,7 +13,7 @@
         <tbody>
         @forelse($books as $book)
             <tr>
-                <td><a href="{{ route('catalog.show', $book) }}">{{ $book->title }}</a></td>
+                <td><div class="d-flex align-items-center gap-2"><div class="thumb">@include('partials.cover', ['book' => $book])</div><a href="{{ route('catalog.show', $book) }}" class="fw-medium">{{ $book->title }}</a></div></td>
                 <td>{{ $book->authorNames() }}</td><td>{{ $book->isbn }}</td><td>{{ $book->category?->name }}</td>
                 <td>{{ $book->available_copies_count }} / {{ $book->copies_count }}</td>
                 <td class="text-end text-nowrap">

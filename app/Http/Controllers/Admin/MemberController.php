@@ -54,11 +54,14 @@ class MemberController extends Controller
                 'member_no' => $data['member_no'] ?: Member::generateNumber($data['type']),
                 'type' => $data['type'],
                 'programme' => $data['programme'],
+                'date_of_birth' => $data['date_of_birth'],
+                'year_of_study' => $data['type'] === 'student' ? $data['year_of_study'] : null,
                 'max_loans' => $data['max_loans'],
                 'expiry_date' => $data['expiry_date'],
             ]);
         });
 
+        $member->user->replacePhoto($request->file('photo'));
         AuditLog::record('member.created', "Registered {$member->member_no} ({$member->user->name})");
 
         return redirect()->route('admin.members.show', $member)
@@ -98,11 +101,14 @@ class MemberController extends Controller
                 'member_no' => $data['member_no'] ?: $member->member_no,
                 'type' => $data['type'],
                 'programme' => $data['programme'],
+                'date_of_birth' => $data['date_of_birth'],
+                'year_of_study' => $data['type'] === 'student' ? $data['year_of_study'] : null,
                 'max_loans' => $data['max_loans'],
                 'expiry_date' => $data['expiry_date'],
             ]);
         });
 
+        $member->user->replacePhoto($request->file('photo'));
         AuditLog::record('member.updated', "Updated {$member->member_no}");
 
         return redirect()->route('admin.members.show', $member)->with('success', 'Member updated.');
@@ -130,13 +136,12 @@ class MemberController extends Controller
             'phone' => ['required', 'string', 'regex:/^\+?[0-9 ]{9,15}$/'],
             'member_no' => ['nullable', 'string', 'max:30', Rule::unique('members')->ignore($member?->id)],
             'type' => ['required', Rule::in(['student', 'staff'])],
-            'programme' => ['nullable', 'string', 'max:255'],
             'max_loans' => ['nullable', 'integer', 'min:1', 'max:50'],
             'expiry_date' => ['nullable', 'date'],
             'password' => ['nullable', 'string', 'min:8'],
-        ]);
+        ] + Member::profileRules(required: false), Member::profileMessages());
 
         // Optional fields left empty are missing from the validated data.
-        return $data + array_fill_keys(['member_no', 'programme', 'max_loans', 'expiry_date', 'password'], null);
+        return $data + array_fill_keys(['member_no', 'programme', 'date_of_birth', 'year_of_study', 'max_loans', 'expiry_date', 'password'], null);
     }
 }

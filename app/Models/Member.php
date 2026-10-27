@@ -12,11 +12,11 @@ class Member extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'member_no', 'type', 'programme', 'max_loans', 'expiry_date'];
+    protected $fillable = ['user_id', 'member_no', 'type', 'programme', 'date_of_birth', 'year_of_study', 'max_loans', 'expiry_date'];
 
     protected function casts(): array
     {
-        return ['expiry_date' => 'date'];
+        return ['expiry_date' => 'date', 'date_of_birth' => 'date'];
     }
 
     public function user(): BelongsTo
@@ -47,6 +47,27 @@ class Member extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function age(): ?int
+    {
+        return $this->date_of_birth?->age;
+    }
+
+    public function yearLabel(): ?string
+    {
+        if (! $this->year_of_study) {
+            return null;
+        }
+
+        $suffix = match ($this->year_of_study) {
+            1 => 'st',
+            2 => 'nd',
+            3 => 'rd',
+            default => 'th',
+        };
+
+        return "Year {$this->year_of_study} ({$this->year_of_study}{$suffix} year)";
     }
 
     public function loanLimit(): int
@@ -97,6 +118,28 @@ class Member extends Model
         }
 
         return $blocks;
+    }
+
+    /** Validation rules for the details shown on the library card. */
+    public static function profileRules(bool $required = true): array
+    {
+        $need = $required ? 'required' : 'nullable';
+
+        return [
+            'programme' => [$need, 'string', 'max:255'],
+            'date_of_birth' => [$need, 'date', 'before:-10 years', 'after:1930-01-01'],
+            'year_of_study' => [$required ? 'required_if:type,student' : 'nullable', 'nullable', 'integer', 'between:1,7'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+        ];
+    }
+
+    public static function profileMessages(): array
+    {
+        return [
+            'date_of_birth.before' => 'Please enter a valid date of birth.',
+            'year_of_study.required_if' => 'Please select your year of study.',
+            'photo.max' => 'The profile picture may not be bigger than 3 MB.',
+        ];
     }
 
     public static function generateNumber(string $type): string

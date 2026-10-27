@@ -8,9 +8,12 @@ It provides an online catalogue, QR code borrowing and returning, reservations w
 | Module | What it does |
 |---|---|
 | **Catalogue (OPAC)** | Anyone (no login) can search by title, author, ISBN, subject or keyword, filter by category/availability and see copies, shelf location and the next due date. |
-| **Self-registration** | Anyone (student or staff) can register at `/register`, gets a library number and a QR library card. |
+| **Self-registration** | Anyone (student or staff) can register at `/register` with a profile picture, course of study, year of study and date of birth, and gets a library number. |
+| **Library card** | A digital card showing the member's photo, name, course, year of study, age, phone, library number, expiry date and a QR code. Printable. |
+| **Profile & photo** | Members update their details and upload, replace or remove their profile picture. |
+| **Forgot password** | "Forgot password?" on the login page emails a reset link (Laravel password reset). |
 | **Book recommendations** | Members recommend books the library doesn't have, or more copies of a book that is never available. **The list is public**; logged-in users support (vote for) recommendations they also need, duplicates are merged into votes, and librarians reply (Approved / Ordered / Now in library / Not approved) — the member gets an email. A "Recommend" button appears when a search finds nothing or a book has no copy on the shelf. |
-| **Cataloguing** | Titles, authors, categories, copies, cover images, and printable QR labels for each copy. |
+| **Cataloguing** | Titles, authors, categories, copies, cover images, and printable QR labels for each copy. Covers can be uploaded or downloaded from Open Library by ISBN; books without one get a colourful generated cover. |
 | **Membership** | Librarians register/edit/suspend members, set borrowing limits and expiry, and print QR library cards. |
 | **Circulation** | Issue and return by scanning QR codes with a phone/laptop camera (html5-qrcode) or a USB scanner. Due dates by member type, borrowing limits, blocks for overdue books or unpaid fines. Members and staff can renew (unless reserved or the renewal limit is reached). |
 | **Reservations** | Members reserve books that are all on loan, see their place in the queue; a returned copy is held for the next member, who gets an SMS. Uncollected holds expire and pass to the next person. |
@@ -24,11 +27,11 @@ Roles: **Guest** (search only) · **Member** · **Librarian** · **Administrator
 
 ## Requirements
 
-- PHP 8.2+ with `pdo_sqlite` or `pdo_mysql`, `mbstring`, `fileinfo` (XAMPP/Laragon on Windows is fine)
+- PHP 8.2+ with `pdo_sqlite` or `pdo_mysql`, `mbstring`, `fileinfo` (GD is not needed) (XAMPP/Laragon on Windows is fine)
 - Composer
 - MySQL 8 / MariaDB (or SQLite for quick testing)
 
-No Node.js build step is needed — Bootstrap, icons, Chart.js and the QR scanner are bundled in `public/vendor`, so the system also works on a campus network without internet.
+No Node.js build step is needed — Bootstrap, icons, the Poppins font, Chart.js and the QR scanner are bundled in `public/vendor`, so the system also works on a campus network without internet.
 
 ## Setup
 
@@ -74,6 +77,22 @@ Demo copies have codes like `BK-001-01` — type them into the Issue/Return page
 
 > The camera scanner needs HTTPS or `localhost`. To scan with a phone on the same Wi-Fi, serve the app over HTTPS (e.g. a hosted server) or use a USB scanner / type the code.
 
+## Book covers
+
+The demo books come with designed cover images (`database/seeders/covers`). When the computer is online you can replace them with the real covers by ISBN:
+
+```bash
+php artisan library:fetch-covers --all   # without --all only books with no cover are filled
+```
+
+Librarians can also click **Get real cover online (ISBN)** on a book's edit page, or upload a photo of the cover.
+
+## Password reset emails
+
+"Forgot password?" sends a reset link by email, so set the `MAIL_*` settings in `.env` (e.g. a Gmail account with an app password, or your mail server).
+While `APP_ENV=local` and `MAIL_MAILER=log` (the demo setup), no email can be sent, so the link is shown on screen instead.
+**Before putting the system online, set `APP_ENV=production` and `APP_DEBUG=false`** — then the link is only ever sent by email.
+
 ## SMS, payments and daily reminders
 
 - **SMS (Africa's Talking):** set `AFRICASTALKING_USERNAME`, `AFRICASTALKING_API_KEY` (and optionally `AFRICASTALKING_FROM`). Use username `sandbox` with a sandbox key for testing. Without keys, messages are written to `storage/logs/laravel.log` and the SMS log page.
@@ -90,13 +109,15 @@ Loan periods, borrowing limits, fine per day, fine cap, the fine level that bloc
 php artisan test
 ```
 
-The feature tests cover registration and login, catalogue management, issuing/returning with limits and fines, renewals, the reservation queue and hold expiry, daily reminders, Mobile Money (sandbox) payments, waivers, recommendations and voting, role-based access, and a render check of every page.
+The feature tests cover registration and login, forgot-password reset, profile pictures and the library card, book cover downloads, catalogue management, issuing/returning with limits and fines, renewals, the reservation queue and hold expiry, daily reminders, Mobile Money (sandbox) payments, waivers, recommendations and voting, role-based access, and a render check of every page.
 
 ## Project structure
 
 - `app/Services/CirculationService.php` — borrowing rules: issue, return, renew, fines, reservation queue
 - `app/Services/NotificationService.php` — SMS (Africa's Talking) and email
 - `app/Services/PaymentService.php` — Flutterwave / sandbox payments
+- `app/Services/CoverService.php` — downloads book covers from Open Library
+- `public/css/smartlib.css` — the colour theme and page styles
 - `app/Support/LibrarySettings.php` — configurable loan rules with defaults
 - `app/Console/Commands/RunDailyLibraryTasks.php` — scheduled reminders
 - `app/Http/Controllers` — public, member (`Member/`) and staff (`Admin/`) controllers

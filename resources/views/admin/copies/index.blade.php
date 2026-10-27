@@ -3,7 +3,8 @@
 @section('sidebar') @include('partials.admin-nav') @endsection
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <div><h3 class="mb-0">{{ $book->title }}</h3><span class="text-muted">{{ $book->authorNames() }}</span></div>
+    <div class="d-flex align-items-center gap-3"><div class="thumb" style="width:60px;flex-basis:60px">@include('partials.cover', ['book' => $book])</div>
+        <div><h3 class="mb-0">{{ $book->title }}</h3><span class="text-muted">{{ $book->authorNames() }}</span></div></div>
     <div>
         <a href="{{ route('admin.copies.labels', ['book' => $book->id]) }}" target="_blank" class="btn btn-outline-primary"><i class="bi bi-printer"></i> Print QR labels</a>
         <a href="{{ route('admin.books.edit', $book) }}" class="btn btn-outline-secondary">Edit book</a>

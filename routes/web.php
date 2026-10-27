@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\DashboardController;
@@ -26,6 +27,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:10,1');
+    Route::get('/forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'email'])->middleware('throttle:6,1')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])->middleware('throttle:6,1')->name('password.update');
 });
 
 // Flutterwave redirects here after checkout.
@@ -38,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'password'])->name('profile.password');
+    Route::delete('/profile/photo', [ProfileController::class, 'removePhoto'])->name('profile.photo.destroy');
 
     Route::get('/resources/{resource}/download', [ResourceController::class, 'download'])->name('resources.download');
 
@@ -67,6 +73,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('books', Admin\BookController::class)->except('show');
         Route::get('books/{book}/copies', [Admin\CopyController::class, 'index'])->name('copies.index');
         Route::post('books/{book}/copies', [Admin\CopyController::class, 'store'])->name('copies.store');
+        Route::post('books/{book}/fetch-cover', [Admin\BookController::class, 'fetchCover'])->name('books.fetch-cover');
         Route::put('copies/{copy}', [Admin\CopyController::class, 'update'])->name('copies.update');
         Route::delete('copies/{copy}', [Admin\CopyController::class, 'destroy'])->name('copies.destroy');
         Route::get('copies/labels', [Admin\CopyController::class, 'labels'])->name('copies.labels');

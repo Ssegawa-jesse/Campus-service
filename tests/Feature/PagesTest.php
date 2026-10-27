@@ -20,6 +20,7 @@ class PagesTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
+        Storage::fake('public');
         $this->seed(DatabaseSeeder::class);
     }
 
@@ -27,7 +28,7 @@ class PagesTest extends TestCase
     {
         $book = Book::first();
 
-        foreach (['/', '/catalogue', '/catalogue?q=finance', '/catalogue?q=zzzz-nothing', "/catalogue/{$book->id}", '/resources', '/recommendations', '/login', '/register'] as $url) {
+        foreach (['/', '/forgot-password', '/catalogue', '/catalogue?q=finance', '/catalogue?q=zzzz-nothing', "/catalogue/{$book->id}", '/resources', '/recommendations', '/login', '/register'] as $url) {
             $this->get($url)->assertOk();
         }
     }

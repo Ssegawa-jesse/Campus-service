@@ -8,6 +8,7 @@ use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Copy;
+use App\Services\CoverService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +55,10 @@ class BookController extends Controller
             return $book;
         });
 
+        if (! $book->cover_image && $request->boolean('fetch_cover')) {
+            app(CoverService::class)->fetch($book);
+        }
+
         AuditLog::record('book.created', "Added \"{$book->title}\" with {$book->copies()->count()} copies");
 
         return redirect()->route('admin.copies.index', $book)->with('success', 'Book added to the catalogue.');
@@ -71,6 +76,17 @@ class BookController extends Controller
         AuditLog::record('book.updated', "Updated \"{$book->title}\"");
 
         return redirect()->route('admin.books.index')->with('success', 'Book updated.');
+    }
+
+    public function fetchCover(Book $book, CoverService $covers)
+    {
+        if (! $book->isbn) {
+            return back()->withErrors(['book' => 'Add an ISBN to this book first.']);
+        }
+
+        return $covers->fetch($book)
+            ? back()->with('success', 'Cover downloaded from Open Library.')
+            : back()->withErrors(['book' => 'No cover found online for this ISBN (or no internet connection). You can upload an image instead.']);
     }
 
     public function destroy(Book $book)
