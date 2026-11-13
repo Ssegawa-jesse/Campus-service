@@ -21,31 +21,30 @@
 </ul>
 
 <div class="card border-0 shadow-sm"><div class="table-responsive">
-    <table class="table align-middle mb-0">
-        <thead><tr><th>Company</th><th>Contact</th><th>Licence</th><th>Parks</th><th class="text-center">Packages</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <table class="table align-middle mb-0 small">
+        <thead><tr><th style="min-width:190px">Company</th><th>Contact</th><th class="text-center">Packages</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
         <tbody>
             @forelse ($operators as $o)
                 <tr class="{{ $o->isPending() ? 'table-warning' : '' }}">
                     <td>
                         <strong>{{ $o->company_name }}</strong>
-                        <div class="small text-muted">{{ $o->user->name }} · registered {{ $o->created_at->diffForHumans() }}</div>
+                        <div class="text-muted">{{ $o->user->name }} · registered {{ $o->created_at->diffForHumans() }}</div>
+                        <div class="text-muted">Licence: {{ $o->licence_no ?: '–' }} · Parks: {{ $o->parks->pluck('name')->map(fn ($n) => Str::before($n, ' National'))->implode(', ') ?: '–' }}</div>
                     </td>
-                    <td class="small">{{ $o->contact_phone }}<br>{{ $o->contact_email }}</td>
-                    <td class="small">{{ $o->licence_no ?: '–' }}</td>
-                    <td class="small">{{ $o->parks->pluck('name')->map(fn ($n) => Str::before($n, ' National'))->implode(', ') ?: '–' }}</td>
+                    <td>{{ $o->contact_phone }}<br>{{ $o->contact_email }}</td>
                     <td class="text-center">{{ $o->packages_count }}</td>
                     <td>
                         <span class="badge bg-{{ $o->statusColor() }}">{{ $o->statusLabel() }}</span>
                         @if ($o->status === 'approved' && $o->approved_at)<div class="small text-muted">{{ $o->approved_at->format('d M Y') }}{{ $o->approver ? ' by '.$o->approver->name : '' }}</div>@endif
                         @if ($o->status === 'rejected' && $o->rejection_reason)<div class="small text-muted">{{ Str::limit($o->rejection_reason, 60) }}</div>@endif
                     </td>
-                    <td class="text-end" style="min-width:230px">
+                    <td class="text-end" style="min-width:190px">
                         @include('admin.operators._actions')
                         @if ($o->status === 'approved')<a href="{{ route('operators.show', $o) }}" target="_blank" class="small d-inline-block mt-1">Public page <i class="bi bi-box-arrow-up-right"></i></a>@endif
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="text-center text-muted py-4">No operators in this list.</td></tr>
+                <tr><td colspan="5" class="text-center text-muted py-4">No operators in this list.</td></tr>
             @endforelse
         </tbody>
     </table>
