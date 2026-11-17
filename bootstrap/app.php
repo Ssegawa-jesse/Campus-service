@@ -32,6 +32,24 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // "419 Page Expired": the form's security (CSRF) token no longer matches the session –
+        // e.g. the page was left open too long, or the database/APP_KEY was reset while it was open.
+        // Send the user back to the form with what they typed (never passwords) and a clear message.
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, Request $request) {
+            if ($e->getStatusCode() !== 419 || $request->expectsJson()) {
+                return null;
+            }
+            if ($request->routeIs('logout')) {
+                return redirect()->route('home')->with('info', 'You have been logged out.');
+            }
+            $back = $request->headers->get('referer');
+            $sameSite = $back && parse_url($back, PHP_URL_HOST) === $request->getHost();
+
+            return redirect()->to($sameSite ? $back : url('/'))
+                ->withInput($request->except(['_token', 'password', 'password_confirmation', 'current_password', 'pin']))
+                ->with('error', 'Your session expired before the form was sent (this happens if the page was open for a long time or the system was restarted). Your details are kept – please check them, re-enter any password and submit again.');
+        });
+
         // Instead of a blank "500 Server Error", explain unfinished local setup.
         $exceptions->render(function (\Illuminate\Encryption\MissingAppKeyException $e) {
             $noEnv = ! file_exists(base_path('.env'));
