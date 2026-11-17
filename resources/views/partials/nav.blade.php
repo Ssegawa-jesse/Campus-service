@@ -1,8 +1,8 @@
 <nav class="navbar navbar-expand-lg p360-nav sticky-top">
     <div class="container-xl">
         <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
-            <img src="{{ asset('images/logo.svg') }}" alt="" width="36" height="36">
-            <span class="brand-text">Pearl<span>360</span></span>
+            <img src="{{ site_logo() }}" alt="{{ config('pearl360.name') }}" class="site-logo">
+            @if (setting('logo_show_name', '1') !== '0')<span class="brand-text">Pearl<span>360</span></span>@endif
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Menu">
             <span class="navbar-toggler-icon"></span>

@@ -54,6 +54,16 @@ if (! function_exists('setting')) {
     }
 }
 
+if (! function_exists('site_logo')) {
+    /** URL of the site logo: the one uploaded in Admin → Settings, or the default public/images/logo.svg. */
+    function site_logo(): string
+    {
+        $custom = setting('site_logo');
+
+        return $custom && file_exists(public_path($custom)) ? media_url($custom) : asset('images/logo.svg');
+    }
+}
+
 if (! function_exists('ugx')) {
     function ugx(int|float|null $amount): string
     {

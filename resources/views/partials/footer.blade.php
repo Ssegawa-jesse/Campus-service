@@ -4,8 +4,8 @@
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <img src="{{ asset('images/logo.svg') }}" width="40" height="40" alt="">
-                    <span class="brand-text text-white fs-4">Pearl<span>360</span></span>
+                    <img src="{{ site_logo() }}" alt="{{ config('pearl360.name') }}" class="site-logo site-logo-footer">
+                    @if (setting('logo_show_name', '1') !== '0')<span class="brand-text text-white fs-4">Pearl<span>360</span></span>@endif
                 </div>
                 <p class="text-white-50 small">{{ setting('site_tagline', 'See Uganda\'s national parks in 360° before you go.') }}</p>
                 <p class="text-white-50 small mb-0">A MUBS Business Computing research project (Group 12) · Case study: Uganda Wildlife Authority.</p>

@@ -183,3 +183,7 @@ a { text-decoration: none; }
 .yt-lite { background: #111 center/cover no-repeat; cursor: pointer; border-radius: 12px; overflow: hidden; }
 .yt-lite .yt-play { position: absolute; inset: 0; margin: auto; width: 76px; height: 54px; border-radius: 14px; background: rgba(200, 16, 46, .92); color: #fff; display: grid; place-items: center; font-size: 2rem; transition: transform .15s; }
 .yt-lite:hover .yt-play, .yt-lite:focus .yt-play { transform: scale(1.08); }
+
+/* Site logo (change it in Admin → Settings → Logo) */
+.site-logo { height: 40px; width: auto; max-width: 180px; object-fit: contain; }
+.site-logo-footer { height: 44px; max-width: 200px; }

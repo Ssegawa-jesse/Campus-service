@@ -105,6 +105,7 @@ The seeder draws **placeholder** landscapes (in `public/uploads/seed/`) so every
 | 360° panoramas | Admin → Parks → **360° scenes** → Upload | Must be **equirectangular** (width = 2 × height). Use an Insta360 / Ricoh Theta, or a phone app such as Google Street View. 4096×2048 JPG is ideal |
 | Hotspots | Open a scene → **click in the panorama** to capture pitch/yaw → choose "Link to scene" or "Information point" | |
 | New park / wildlife reserve | Admin → Parks → Add park → **click the map** to place the pin | |
+| **Site logo** | Admin → Settings → Logo | PNG, JPG or WebP (SVG is refused for security), about 256×256 px. Untick "Show the name Pearl360" if your logo already contains the name. "Remove my logo" goes back to the default. Used in the navbar, footer, browser tab and payment page |
 | Home page hero image, contacts, USD rate | Admin → Settings | |
 
 All uploads are saved to `public/uploads/…`, so they work on shared hosting without `storage:link`.

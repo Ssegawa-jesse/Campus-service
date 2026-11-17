@@ -41,7 +41,7 @@ class FlutterwaveGateway implements PaymentGateway
                 'customizations' => [
                     'title' => config('pearl360.name'),
                     'description' => 'Booking '.$payment->booking->reference.' – '.$payment->booking->park->name,
-                    'logo' => asset('images/logo.svg'),
+                    'logo' => site_logo(),
                 ],
                 'meta' => ['booking' => $payment->booking->reference],
             ]);
