@@ -33,7 +33,8 @@ class SiteLogoTest extends TestCase
 
     public function test_admin_can_upload_hide_name_and_remove_logo(): void
     {
-        $this->get('/')->assertSee('images/logo.svg');
+        $default = strtok(site_logo(), '?'); // whatever logo is active before an upload (e.g. public/images/logo.png)
+        $this->get('/')->assertSee($default);
 
         $this->save(['site_logo' => UploadedFile::fake()->image('our-logo.png', 256, 256)])->assertSessionHas('success');
         $path = Setting::get('site_logo');
@@ -46,7 +47,7 @@ class SiteLogoTest extends TestCase
         $this->save(['remove_logo' => 1]);
         $this->assertNull(Setting::get('site_logo'));
         $this->assertFileDoesNotExist(public_path($path));
-        $this->get('/')->assertSee('images/logo.svg');
+        $this->get('/')->assertSee($default)->assertDontSee($path);
     }
 
     public function test_svg_logos_are_refused(): void
