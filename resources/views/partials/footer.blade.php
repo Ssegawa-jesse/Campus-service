@@ -4,7 +4,7 @@
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <img src="{{ site_logo() }}" alt="{{ config('pearl360.name') }}" class="site-logo site-logo-footer">
+                    <img src="{{ site_logo() }}" alt="{{ config('pearl360.name') }}" class="site-logo site-logo-footer" onerror="this.onerror=null;this.src='{{ default_logo() }}'">
                     @if (setting('logo_show_name', '1') !== '0')<span class="brand-text text-white fs-4">Pearl<span>360</span></span>@endif
                 </div>
                 <p class="text-white-50 small">{{ setting('site_tagline', 'See Uganda\'s national parks in 360° before you go.') }}</p>

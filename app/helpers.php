@@ -55,12 +55,40 @@ if (! function_exists('setting')) {
 }
 
 if (! function_exists('site_logo')) {
-    /** URL of the site logo: the one uploaded in Admin → Settings, or the default public/images/logo.svg. */
+    /**
+     * URL of the site logo, checked in this order:
+     *  1. the logo uploaded in Admin → Settings → Logo
+     *  2. a file you put yourself in public/images: logo.png, logo.jpg, logo.jpeg or logo.webp
+     *  3. public/images/logo.svg – only if it really is an SVG (a renamed PNG would show as a broken image)
+     *  4. the original Pearl360 logo (public/images/pearl360-default-logo.svg)
+     * A ?v=… version is added so browsers show a new logo straight away instead of an old cached one.
+     */
     function site_logo(): string
     {
-        $custom = setting('site_logo');
+        $candidates = [setting('site_logo')];
+        foreach (['png', 'jpg', 'jpeg', 'webp'] as $ext) {
+            $candidates[] = "images/logo.{$ext}";
+        }
 
-        return $custom && file_exists(public_path($custom)) ? media_url($custom) : asset('images/logo.svg');
+        foreach (array_filter($candidates) as $path) {
+            if (is_file(public_path($path))) {
+                return media_url($path).'?v='.filemtime(public_path($path));
+            }
+        }
+
+        $svg = public_path('images/logo.svg');
+        if (is_file($svg) && str_contains((string) file_get_contents($svg, false, null, 0, 512), '<svg')) {
+            return asset('images/logo.svg').'?v='.filemtime($svg);
+        }
+
+        return default_logo();
+    }
+}
+
+if (! function_exists('default_logo')) {
+    function default_logo(): string
+    {
+        return asset('images/pearl360-default-logo.svg');
     }
 }
 
