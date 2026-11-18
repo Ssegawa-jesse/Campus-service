@@ -65,4 +65,20 @@ class RegistrationTest extends TestCase
         $this->post('/login', ['email' => 'a@example.com', 'password' => 'password'])->assertSessionHasErrors('email');
         $this->assertGuest();
     }
+
+    public function test_login_limit_is_per_account_not_per_shared_ip(): void
+    {
+        User::factory()->create(['email' => 'a@example.com', 'password' => 'password']);
+        User::factory()->create(['email' => 'b@example.com', 'password' => 'password']);
+
+        foreach (range(1, 10) as $_) {
+            $this->post('/login', ['email' => 'a@example.com', 'password' => 'wrong']);
+        }
+        $this->post('/login', ['email' => 'a@example.com', 'password' => 'wrong'])->assertStatus(429);
+
+        // Another student on the same campus IP can still log in and reset a password.
+        $this->post('/login', ['email' => 'b@example.com', 'password' => 'password'])->assertRedirect('/dashboard');
+        $this->post('/logout');
+        $this->post('/forgot-password', ['email' => 'b@example.com'])->assertSessionHas('success');
+    }
 }
