@@ -1,0 +1,26 @@
+{
+  "name": "murchison-smart-tourism",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart trip planning and 360° virtual exploration for Murchison Falls National Park",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.12.0",
+    "leaflet": "1.9.4",
+    "next": "16.4.6",
+    "react": "19.2.9",
+    "react-dom": "19.2.9"
+  },
+  "devDependencies": {
+    "@types/leaflet": "1.9.20",
+    "@types/node": "22.19.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3"
+  }
+}
