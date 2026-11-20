@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb2d6"/><stop offset="1" stop-color="#f3dcb0"/></linearGradient></defs>
+  <rect width="800" height="450" fill="url(#s)"/>
+  <path d="M0 300 Q150 220 300 290 T600 270 T800 290 V450 H0Z" fill="#4c7a57"/>
+  <path d="M0 340 Q200 300 400 345 T800 330 V450 H0Z" fill="#1f4d3a"/>
+  <text x="400" y="420" font-family="sans-serif" font-size="22" fill="#fff" text-anchor="middle">Upload a photo in Admin → Parks</text>
+</svg>
