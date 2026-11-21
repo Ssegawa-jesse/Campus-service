@@ -5,3 +5,6 @@ out
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+murchison.db
+murchison.db-*
+uploads/

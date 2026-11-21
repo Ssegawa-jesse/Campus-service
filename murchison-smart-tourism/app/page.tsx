@@ -84,7 +84,7 @@ export default function Home() {
               <h2 style={{ marginBottom: 4 }}>Ready to plan?</h2>
               <p style={{ margin: 0, opacity: .9 }}>It takes less than a minute to get a personalised itinerary and budget.</p>
             </div>
-            <Link href="/plan" className="btn btn-primary">Build my itinerary</Link>
+            <div className="btn-row"><Link href="/plan" className="btn btn-primary">Build my itinerary</Link><Link href="/operators" className="btn btn-light">Book a tour operator</Link><Link href="/register?role=operator" className="btn btn-light">Register as an operator</Link></div>
           </div>
         </div>
       </section>

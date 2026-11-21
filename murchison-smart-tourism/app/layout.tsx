@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Nav from '@/components/Nav';
+import { currentUser } from '@/lib/auth';
 import { PARK } from '@/lib/data';
 
 export const metadata: Metadata = {
@@ -9,11 +10,12 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1f4d3a' };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const user = await currentUser().catch(() => null);
   return (
     <html lang="en">
       <body>
-        <Nav />
+        <Nav user={user ? { name: user.name, role: user.role } : null} />
         <main>{children}</main>
         <footer className="footer">
           <div className="container grid">
@@ -26,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <div>
               <strong style={{ color: '#fff' }}>Plan</strong>
-              <div className="small"><a href="/plan">Smart itinerary</a><br /><a href="/budget">Travel budget</a><br /><a href="/navigate">Map and routes</a></div>
+              <div className="small"><a href="/plan">Smart itinerary</a><br /><a href="/budget">Travel budget</a><br /><a href="/operators">Tour operators</a><br /><a href="/register?role=operator">Register as an operator</a></div>
             </div>
             <div>
               <strong style={{ color: '#fff' }}>Contact</strong>

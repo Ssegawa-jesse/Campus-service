@@ -28,6 +28,7 @@ export default function Planner() {
   const [weather, setWeather] = useState<DayWeather[] | null>(null);
   const [saved, setSaved] = useState<Saved[]>([]);
   const [message, setMessage] = useState('');
+  const [sceneFor, setSceneFor] = useState<Record<string, number>>({});
 
   // Load a shared plan from the link, and any saved plans from this browser.
   useEffect(() => {
@@ -38,6 +39,11 @@ export default function Planner() {
     if (fromLink) setPlan(buildPlan(start));
     try { setSaved(JSON.parse(localStorage.getItem(STORE_KEY) || '[]')); } catch { /* storage unavailable */ }
     fetchForecast().then(setWeather).catch(() => setWeather([]));
+    fetch('/api/scenes').then(r => r.json()).then((rows: { id: number; activity_id: string | null }[]) => {
+      const m: Record<string, number> = {};
+      rows.forEach(r => { if (r.activity_id && !m[r.activity_id]) m[r.activity_id] = r.id; });
+      setSceneFor(m);
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -170,15 +176,16 @@ export default function Planner() {
             <p>Fill in your trip details and press <strong>Build my itinerary</strong>.</p>
           </div>
         ) : (
-          <PlanView plan={plan} weatherByDate={weatherByDate} mapIds={mapIds as string[]} onSave={save} onShare={share} />
+          <PlanView plan={plan} weatherByDate={weatherByDate} mapIds={mapIds as string[]} onSave={save} onShare={share} sceneFor={sceneFor} bookHref={`/book?p=${encode(plan.input)}`} />
         )}
       </div>
     </div>
   );
 }
 
-function PlanView({ plan, weatherByDate, mapIds, onSave, onShare }: {
+function PlanView({ plan, weatherByDate, mapIds, onSave, onShare, sceneFor, bookHref }: {
   plan: Plan; weatherByDate: Record<string, DayWeather>; mapIds: string[]; onSave: () => void; onShare: () => void;
+  sceneFor: Record<string, number>; bookHref: string;
 }) {
   const activityCount = plan.days.flatMap(d => d.items).filter(i => i.kind === 'activity').length;
   const persons = plan.input.adults + plan.input.children;
@@ -192,6 +199,7 @@ function PlanView({ plan, weatherByDate, mapIds, onSave, onShare }: {
       </div>
 
       <div className="btn-row no-print" style={{ marginBottom: 16 }}>
+        <Link className="btn btn-primary" href={bookHref}>📩 Book this itinerary</Link>
         <button className="btn btn-dark" onClick={onSave}>💾 Save</button>
         <button className="btn btn-ghost" onClick={onShare}>🔗 Share</button>
         <button className="btn btn-ghost" onClick={() => window.print()}>🖨️ Print / PDF</button>
@@ -218,6 +226,7 @@ function PlanView({ plan, weatherByDate, mapIds, onSave, onShare }: {
                       {it.costUgx ? <span className="cost">{formatUsd(it.costUgx)}</span> : null}
                       <div><span className="time">{it.time}</span><strong>{it.title}</strong></div>
                       <div className="muted small">{it.detail}</div>
+                      {it.activityId && sceneFor[it.activityId] ? <Link className="small no-print" href={`/explore?scene=${sceneFor[it.activityId]}`}>👁️ View in 360°</Link> : null}
                     </>
                   )}
                 </li>

@@ -1,25 +1,49 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import PanoViewer from '@/components/PanoViewer';
-import { GALLERY, H5P_TOURS } from '@/lib/data';
+import PanoViewer, { type ViewerScene } from '@/components/PanoViewer';
+import { all, type Hotspot, type Scene } from '@/lib/db';
+import { ACTIVITIES, GALLERY, H5P_TOURS, SCENES } from '@/lib/data';
 
 export const metadata: Metadata = { title: '360° virtual exploration' };
+export const dynamic = 'force-dynamic';
 
-export default function ExplorePage() {
+/** Scenes uploaded by administrators; the built-in sample scenes are shown until the first one is published. */
+async function loadScenes(): Promise<{ scenes: ViewerScene[]; samples: boolean }> {
+  const rows = await all<Scene>('SELECT * FROM scenes WHERE published = 1 ORDER BY sort, id').catch(() => []);
+  if (!rows.length) {
+    return { samples: true, scenes: SCENES.map(s => ({ id: s.id, title: s.title, image: s.image, hotspots: s.hotspots })) };
+  }
+  const ids = new Set(rows.map(r => r.id));
+  const hs = await all<Hotspot>(`SELECT * FROM hotspots WHERE scene_id IN (${rows.map(() => '?').join(',')})`, rows.map(r => r.id));
+  return {
+    samples: false,
+    scenes: rows.map(r => ({
+      id: String(r.id), title: r.title, image: r.image_url, description: r.description,
+      activity: ACTIVITIES.find(a => a.id === r.activity_id)?.name ?? null,
+      hotspots: hs.filter(h => h.scene_id === r.id && (h.type === 'info' || (h.target_scene_id && ids.has(h.target_scene_id))))
+        .map(h => ({ pitch: h.pitch, yaw: h.yaw, type: h.type, text: h.text, ...(h.type === 'scene' ? { sceneId: String(h.target_scene_id) } : {}) })),
+    })),
+  };
+}
+
+export default async function ExplorePage({ searchParams }: { searchParams: Promise<{ scene?: string }> }) {
+  const { scene } = await searchParams;
+  const { scenes, samples } = await loadScenes();
   return (
     <>
       <section className="page-head">
         <div className="container">
           <div className="eyebrow">Virtual exploration</div>
-          <h1>Explore the park before you travel</h1>
-          <p>Look around the Top of the Falls, the Victoria Nile at Paraa and the northern savannah in 360°, then add the places you like to your itinerary.</p>
+          <h1>See the activities before you travel</h1>
+          <p>Look around the places where Murchison Falls activities happen in 360°, then add the ones you like to your itinerary.</p>
         </div>
       </section>
 
       <section className="section">
         <div className="container">
           <div className="card">
-            <PanoViewer />
+            {samples && <div className="notice info">Sample scenes are shown. Administrators replace them by uploading 360° photos under Admin → 360° scenes &amp; hotspots.</div>}
+            <PanoViewer scenes={scenes} initial={scene} />
             <div className="btn-row" style={{ marginTop: 12 }}>
               <Link href="/plan" className="btn btn-primary">Plan a trip to these places</Link>
             </div>
@@ -27,10 +51,10 @@ export default function ExplorePage() {
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div className="container">
-          <h2>H5P interactive tours</h2>
-          {H5P_TOURS.length > 0 ? (
+      {H5P_TOURS.length > 0 && (
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <h2>H5P interactive tours</h2>
             <div className="grid">
               {H5P_TOURS.map(t => (
                 <div className="card" key={t.src}>
@@ -40,19 +64,9 @@ export default function ExplorePage() {
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="card">
-              <p>Tours made with H5P&apos;s <strong>Virtual Tour (360)</strong> content type will appear here.</p>
-              <ol className="small" style={{ paddingLeft: 18, margin: 0 }}>
-                <li>Take 360° photos in the park with a 360° camera and export them as 2:1 JPG images.</li>
-                <li>In H5P (for example the free Lumi desktop app), create a Virtual Tour (360), add the photos as scenes and place hotspots.</li>
-                <li>Export the tour as one HTML file into <code>public/h5p/</code>, or copy the embed link from h5p.com.</li>
-                <li>Add the tour to <code>H5P_TOURS</code> in <code>lib/data.ts</code>.</li>
-              </ol>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="container">
