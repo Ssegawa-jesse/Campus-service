@@ -10,7 +10,7 @@
 
 return [
 
-    'name' => env('APP_NAME', 'Pearl360 Uganda'),
+    'name' => env('APP_NAME', 'Murchison Falls Smart Tourism'),
 
     // Default admin contact – receives booking & payment alerts (email + SMS).
     'admin_email' => env('ADMIN_EMAIL', '2400725284@mubs.ac.ug'),

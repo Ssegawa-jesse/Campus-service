@@ -12,10 +12,15 @@
                 <div><strong>{{ $package->title }}</strong><div class="small text-muted">{{ $package->operator->company_name }} · {{ $package->days }} days · {{ ugx($package->price_ugx) }} per person</div></div>
             </div>
         @endif
+        @if ($plan)
+            <div class="alert alert-info small"><i class="bi bi-magic"></i> <strong>Your smart itinerary will be sent with this enquiry:</strong> {{ $planSummary }}
+                <div class="mt-1">System estimate: {{ \App\Services\Murchison\TripCost::ugx($plan['total']) }} ({{ \App\Services\Murchison\TripCost::usd($plan['total']) }})</div></div>
+        @endif
         <form method="POST" action="{{ route('tourist.bookings.store') }}" class="row g-3">
             @csrf
+            @if ($plan)<input type="hidden" name="itinerary" value="{{ $plan['code'] }}">@endif
             @if ($package)<input type="hidden" name="tour_package_id" value="{{ $package->id }}">@endif
-            <div class="col-md-6">
+            <div class="col-md-6 {{ $parks->count() === 1 ? 'd-none' : '' }}">
                 <label class="form-label">Park</label>
                 <select name="park_id" id="parkSelect" class="form-select" required @disabled($package)>
                     <option value="">Choose a park</option>
@@ -23,7 +28,7 @@
                 </select>
                 @if ($package)<input type="hidden" name="park_id" value="{{ $package->park_id }}">@endif
             </div>
-            <div class="col-md-6">
+            <div class="{{ $parks->count() === 1 ? 'col-md-12' : 'col-md-6' }}">
                 <label class="form-label">Tour operator</label>
                 <select name="operator_id" id="operatorSelect" class="form-select" required @disabled($package)>
                     <option value="">Choose an operator</option>
@@ -32,10 +37,10 @@
                 @if ($package)<input type="hidden" name="operator_id" value="{{ $package->operator_id }}">@endif
                 <div class="form-text" id="opHint"></div>
             </div>
-            <div class="col-md-4"><label class="form-label">Travel date</label><input type="date" name="travel_date" value="{{ old('travel_date', now()->addMonth()->format('Y-m-d')) }}" min="{{ now()->addDay()->format('Y-m-d') }}" class="form-control" required></div>
-            <div class="col-md-4"><label class="form-label">Number of travellers</label><input type="number" name="group_size" value="{{ old('group_size', 2) }}" min="1" max="50" class="form-control" required></div>
+            <div class="col-md-4"><label class="form-label">Travel date</label><input type="date" name="travel_date" value="{{ old('travel_date', $plan && $plan['input']['start_date'] > now()->toDateString() ? $plan['input']['start_date'] : now()->addMonth()->format('Y-m-d')) }}" min="{{ now()->addDay()->format('Y-m-d') }}" class="form-control" required></div>
+            <div class="col-md-4"><label class="form-label">Number of travellers</label><input type="number" name="group_size" value="{{ old('group_size', $plan ? $plan['input']['adults'] + $plan['input']['children'] : 2) }}" min="1" max="50" class="form-control" required></div>
             <div class="col-md-4"><label class="form-label">Phone for SMS updates</label><input name="contact_phone" value="{{ old('contact_phone', auth()->user()->phone) }}" class="form-control" required></div>
-            <div class="col-12"><label class="form-label">Message to the operator</label><textarea name="message" rows="4" class="form-control" placeholder="Accommodation preference, special requests, activities you want…">{{ old('message') }}</textarea></div>
+            <div class="col-12"><label class="form-label">Message to the operator</label><textarea name="message" rows="4" class="form-control" placeholder="Accommodation preference, special requests, activities you want…">{{ old('message', $plan ? 'Please quote for my smart itinerary ('.$plan['input']['days'].' days, '.config('murchison.tiers.'.$plan['input']['tier'].'.label').' accommodation).' : '') }}</textarea></div>
             <div class="col-12"><button class="btn btn-forest btn-lg"><i class="bi bi-send"></i> Send enquiry</button></div>
         </form>
     </div>

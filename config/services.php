@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // AI travel assistant (optional). Without a key the assistant answers from the park information.
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+    ],
+
 ];

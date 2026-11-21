@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="page-head"><h1>Enquiry {{ $booking->reference }}</h1>@include('partials.booking-status')</div>
+@include('partials.booking-itinerary')
 <div class="row g-4">
     <div class="col-md-6">
         <div class="card border-0 shadow-sm"><div class="card-body">

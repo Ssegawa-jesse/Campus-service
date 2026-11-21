@@ -6,7 +6,7 @@
 @section('content')
 <div class="auth-wrap" style="--auth-img:url('{{ asset('uploads/seed/queen-elizabeth-national-park/cover.jpg') }}')">
     <div class="auth-art">
-        <h2 class="fw-bold">Join Pearl360.</h2>
+        <h2 class="fw-bold">Join the Murchison Falls platform.</h2>
         <p class="text-white-50">Tourists: save parks, plan trips and book with Mobile Money.<br>Operators: receive enquiries from tourists who have already explored the parks in 360°.</p>
     </div>
     <div class="auth-form">

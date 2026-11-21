@@ -10,7 +10,7 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
-            'site_tagline' => 'See Uganda\'s national parks in 360° before you go – then plan and book your safari.',
+            'site_tagline' => 'Smart trip planning for Murchison Falls National Park – plan, budget, explore in 360° and book.',
             'admin_email' => config('pearl360.admin_email'),
             'admin_phone' => config('pearl360.admin_phone'),
             'support_whatsapp' => config('pearl360.admin_phone'),

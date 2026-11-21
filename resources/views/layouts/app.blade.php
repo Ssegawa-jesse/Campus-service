@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Explore Uganda in 360°') · {{ config('pearl360.name') }}</title>
-    <meta name="description" content="@yield('description', setting('site_tagline', 'Virtual 360° tours and smart trip planning for Uganda\'s national parks.'))">
+    <title>@yield('title', 'Smart trip planning') · {{ config('pearl360.name') }}</title>
+    <meta name="description" content="@yield('description', setting('site_tagline', 'Smart trip planning and 360° exploration for Murchison Falls National Park.'))">
     <link rel="icon" href="{{ site_logo() }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
     <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
     @stack('styles')
     <link href="{{ asset('css/pearl360.css') }}?v=1" rel="stylesheet">
+    <link href="{{ asset('css/murchison.css') }}?v=1" rel="stylesheet">
 </head>
 <body class="@yield('body_class')">
     @include('partials.nav')

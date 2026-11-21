@@ -49,6 +49,7 @@
             <form method="POST" action="{{ route('admin.scenes.update', $scene) }}" enctype="multipart/form-data" class="row g-2">
                 @csrf @method('PUT')
                 <div class="col-12"><input name="title" value="{{ $scene->title }}" class="form-control" required></div>
+                <div class="col-12"><select name="activity_key" class="form-select"><option value="">Activity shown: general view of the park</option>@foreach (config('murchison.activities') as $k => $a)<option value="{{ $k }}" @selected(old('activity_key', $scene->activity_key) === $k)>{{ $a['name'] }}</option>@endforeach</select></div>
                 <div class="col-12"><textarea name="description" rows="3" class="form-control">{{ $scene->description }}</textarea></div>
                 <div class="col-4"><label class="form-label small">Start pitch</label><input name="initial_pitch" id="startPitch" value="{{ $scene->initial_pitch }}" class="form-control form-control-sm"></div>
                 <div class="col-4"><label class="form-label small">Start yaw</label><input name="initial_yaw" id="startYaw" value="{{ $scene->initial_yaw }}" class="form-control form-control-sm"></div>

@@ -8,6 +8,7 @@ use App\Models\Operator;
 use App\Models\Park;
 use App\Models\TourPackage;
 use App\Services\NotificationService;
+use App\Services\Murchison\SmartItinerary;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -27,11 +28,15 @@ class BookingController extends Controller
     public function create(Request $request)
     {
         $package = $request->filled('package') ? TourPackage::with('operator', 'park')->where('slug', $request->input('package'))->first() : null;
-        $park = $package?->park ?? ($request->filled('park') ? Park::where('slug', $request->input('park'))->first() : null);
+        $park = $package?->park ?? \App\Http\Controllers\SmartTripController::park();
+        $input = SmartItinerary::decode($request->query('plan'));
+        $plan = $input ? app(SmartItinerary::class)->build($input) : null;
 
         return view('tourist.bookings.create', [
             'package' => $package,
             'park' => $park,
+            'plan' => $plan,
+            'planSummary' => $plan ? app(SmartItinerary::class)->summary($plan) : null,
             'parks' => Park::published()->orderBy('name')->get(),
             'operators' => Operator::where('is_verified', true)->with('parks:id')->orderBy('company_name')->get(),
             'selectedOperator' => $package?->operator_id ?? $request->integer('operator') ?: null,
@@ -48,7 +53,11 @@ class BookingController extends Controller
             'group_size' => 'required|integer|min:1|max:50',
             'contact_phone' => ['required', \App\Http\Controllers\AuthController::PHONE_RULE],
             'message' => 'nullable|string|max:2000',
+            'itinerary' => 'nullable|string|max:2000',
         ]);
+        if (! empty($data['itinerary']) && ! SmartItinerary::decode($data['itinerary'])) {
+            unset($data['itinerary']);
+        }
 
         if (! empty($data['tour_package_id'])) {
             $package = TourPackage::findOrFail($data['tour_package_id']);

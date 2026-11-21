@@ -1,20 +1,23 @@
-<nav class="navbar navbar-expand-lg p360-nav sticky-top">
+<nav class="navbar navbar-expand-xl p360-nav sticky-top">
     <div class="container-xl">
         <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
-            <img src="{{ site_logo() }}" alt="{{ config('pearl360.name') }}" class="site-logo" onerror="this.onerror=null;this.src='{{ default_logo() }}'">
-            @if (setting('logo_show_name', '1') !== '0')<span class="brand-text">Pearl<span>360</span></span>@endif
+            <img src="{{ site_logo() }}" alt="MUBS logo" class="site-logo" onerror="this.onerror=null;this.src='{{ default_logo() }}'">
+            @if (setting('logo_show_name', '1') !== '0')
+                <span class="brand-text lh-1">Murchison<span> Falls</span><small class="d-block text-muted fw-normal" style="font-size:.7rem;letter-spacing:.02em">Smart Tourism Platform</small></span>
+            @endif
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Menu">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav mx-auto">
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('parks.*', 'tour.*') ? 'active' : '' }}" href="{{ route('parks.index') }}">Parks</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('map') ? 'active' : '' }}" href="{{ route('map') }}">Map</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('planner.*') ? 'active' : '' }}" href="{{ route('planner.index') }}">Trip Planner</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('parks.compare') ? 'active' : '' }}" href="{{ route('parks.compare') }}">Compare</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('packages.*', 'operators.*') ? 'active' : '' }}" href="{{ route('packages.index') }}">Safari Packages</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">About</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('plan.*') ? 'active' : '' }}" href="{{ route('plan.index') }}">Smart itinerary</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('budget') ? 'active' : '' }}" href="{{ route('budget') }}">Budget</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('map') ? 'active' : '' }}" href="{{ route('map') }}">Map &amp; routes</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('explore', 'tour.*') ? 'active' : '' }}" href="{{ route('explore') }}">360° explore</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('packages.*', 'operators.*') ? 'active' : '' }}" href="{{ route('packages.index') }}">Tour operators</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('assistant') ? 'active' : '' }}" href="{{ route('assistant') }}">AI assistant</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('updates') ? 'active' : '' }}" href="{{ route('updates') }}">Updates</a></li>
             </ul>
             <div class="d-flex align-items-center gap-2">
                 @auth

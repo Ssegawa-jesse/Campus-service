@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pearl360 – setup not finished</title>
+<title>Murchison Falls Smart Tourism – setup not finished</title>
 <style>
     body { margin: 0; font-family: Segoe UI, Arial, sans-serif; background: #faf6ee; color: #1c2321; }
     .box { max-width: 720px; margin: 60px auto; background: #fff; border-radius: 16px; padding: 32px 36px; box-shadow: 0 10px 30px rgba(0,0,0,.08); border-top: 6px solid #e0a526; }
@@ -16,7 +16,7 @@
 </head>
 <body>
 <div class="box">
-    <h1>Pearl360 is installed, but setup isn't finished</h1>
+    <h1>The system is installed, but setup isn't finished</h1>
     <p class="why"><strong>Problem:</strong> {{ $problem }}</p>
     <p><strong>Easiest fix (Windows):</strong> close this server window, then double-click <code>setup.bat</code> in the project folder.</p>
     <p><strong>Or run these commands</strong> in the project folder:</p>

@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-head">
     <h1>Hello, {{ Str::words($user->name, 1, '') }} 👋</h1>
-    <a href="{{ route('planner.index') }}" class="btn btn-gold"><i class="bi bi-magic"></i> Plan a new trip</a>
+    <a href="{{ route('plan.index') }}" class="btn btn-gold"><i class="bi bi-magic"></i> Plan a new trip</a>
 </div>
 
 @foreach ($actionNeeded as $b)
@@ -55,7 +55,7 @@
     @endforelse
 </div>
 
-<h5>My trip plans</h5>
+<h5>My saved itineraries</h5>
 <div class="row g-3">
     @forelse ($plans as $plan)
         <div class="col-md-6">
@@ -63,20 +63,19 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <h6>{{ $plan->title }}</h6>
-                        <form method="POST" action="{{ route('tourist.plans.destroy', $plan) }}" data-confirm="Delete this plan?">@csrf @method('DELETE')<button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button></form>
+                        <form method="POST" action="{{ route('tourist.plans.destroy', $plan) }}" data-confirm="Delete this itinerary?">@csrf @method('DELETE')<button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button></form>
                     </div>
-                    <div class="small text-muted mb-2">{{ $plan->created_at->format('d M Y') }} · {{ collect($plan->preferences['interests'] ?? [])->map(fn ($i) => \App\Models\Park::INTERESTS[$i] ?? $i)->implode(', ') }}</div>
-                    <ol class="small mb-2 ps-3">@foreach (array_slice($plan->recommended_parks, 0, 3) as $r)<li>{{ $r['name'] }} <span class="text-muted">({{ $r['score'] }}%)</span></li>@endforeach</ol>
-                    <form method="POST" action="{{ route('planner.results') }}">@csrf
-                        @foreach ($plan->preferences['interests'] ?? [] as $i)<input type="hidden" name="interests[]" value="{{ $i }}">@endforeach
-                        @foreach (['fitness', 'budget', 'days', 'month'] as $k)@if (isset($plan->preferences[$k]))<input type="hidden" name="{{ $k }}" value="{{ $plan->preferences[$k] }}">@endif @endforeach
-                        <button class="btn btn-sm btn-outline-forest">Re-run plan</button>
-                    </form>
+                    <div class="small text-muted mb-2">Saved {{ $plan->created_at->format('d M Y') }}@if (isset($plan->recommended_parks['total_ugx'])) · estimate {{ \App\Services\Murchison\TripCost::ugx($plan->recommended_parks['total_ugx']) }}@endif</div>
+                    <p class="small mb-2">{{ $plan->recommended_parks['summary'] ?? '' }}</p>
+                    @if (isset($plan->recommended_parks['code']))
+                        <a href="{{ route('plan.index', ['p' => $plan->recommended_parks['code']]) }}" class="btn btn-sm btn-outline-forest">Open</a>
+                        <a href="{{ route('tourist.bookings.create', ['plan' => $plan->recommended_parks['code']]) }}" class="btn btn-sm btn-gold">Book this itinerary</a>
+                    @endif
                 </div>
             </div>
         </div>
     @empty
-        <p class="text-muted">Use the <a href="{{ route('planner.index') }}">trip planner</a> and save your results.</p>
+        <p class="text-muted">Use the <a href="{{ route('plan.index') }}">smart itinerary</a> and save your plans here.</p>
     @endforelse
 </div>
 @endsection

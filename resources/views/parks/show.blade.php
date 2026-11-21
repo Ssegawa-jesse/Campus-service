@@ -190,14 +190,13 @@
                 @endforeach
             @endif
 
-            <h5 class="mt-4">Nearby parks</h5>
-            @foreach ($nearby as $n)
-                <a href="{{ route('parks.show', $n) }}" class="d-flex gap-2 align-items-center mb-2 text-reset">
-                    <img src="{{ $n->coverUrl() }}" width="64" height="44" class="rounded object-fit-cover" alt="">
-                    <span class="small fw-semibold">{{ $n->name }}</span>
-                </a>
-            @endforeach
-            <a href="{{ route('parks.compare', ['parks' => [$park->id, $nearby->first()?->id]]) }}" class="btn btn-sm btn-outline-forest mt-2 w-100"><i class="bi bi-layout-split"></i> Compare with nearby</a>
+            <div class="card border-0 bg-light mt-4"><div class="card-body">
+                <h5 class="mb-2">Plan your visit</h5>
+                <p class="small text-muted">Get a timed day-by-day itinerary with a cost estimate, map and weather.</p>
+                <a href="{{ route('plan.index') }}" class="btn btn-gold w-100 mb-2"><i class="bi bi-magic"></i> Build my itinerary</a>
+                <a href="{{ route('budget') }}" class="btn btn-sm btn-outline-forest w-100 mb-2">Estimate the cost</a>
+                <a href="{{ route('map') }}" class="btn btn-sm btn-outline-forest w-100">Map &amp; routes</a>
+            </div></div>
         </div>
     </div>
 </div>

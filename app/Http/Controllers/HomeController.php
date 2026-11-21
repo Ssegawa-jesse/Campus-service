@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\ContactMessage;
 use App\Models\Operator;
-use App\Models\Park;
-use App\Models\Review;
 use App\Models\Scene;
 use App\Models\TourPackage;
 use App\Services\NotificationService;
@@ -16,28 +14,19 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $parks = Park::published()->withCount('scenes')->withAvg(['reviews' => fn ($q) => $q->where('is_approved', true)], 'rating')->orderBy('name')->get();
+        $park = SmartTripController::park();
 
         return view('home', [
-            'parks' => $parks,
-            'featured' => $parks->sortByDesc('views_count')->take(6),
-            'hiddenGems' => $parks->sortBy('views_count')->take(3),
-            'videoParks' => $parks->filter(fn ($p) => youtube_embed($p->video_url))->sortByDesc('views_count')->take(3),
+            'park' => $park,
             'packages' => TourPackage::with('park', 'operator')->where('is_active', true)
-                ->whereHas('operator', fn ($q) => $q->where('is_verified', true))->latest()->take(6)->get(),
-            'reviews' => Review::with('user', 'park')->where('is_approved', true)->whereNotNull('park_id')->latest()->take(3)->get(),
+                ->whereHas('operator', fn ($q) => $q->where('is_verified', true))->latest()->take(3)->get(),
             'stats' => [
-                'parks' => $parks->count(),
+                'activities' => count(config('murchison.activities')),
                 'scenes' => Scene::count(),
                 'operators' => Operator::where('is_verified', true)->count(),
                 'trips' => Booking::whereIn('status', ['paid', 'confirmed', 'completed'])->count(),
             ],
         ]);
-    }
-
-    public function map()
-    {
-        return view('map', ['parks' => Park::published()->withCount('scenes')->orderBy('name')->get()]);
     }
 
     public function about()

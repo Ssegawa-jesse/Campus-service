@@ -38,6 +38,7 @@
                 </dl>
             </div>
         </div>
+        @include('partials.booking-itinerary')
         @if ($booking->operator_response)
             <div class="card border-0 shadow-sm mb-4 border-start border-4 border-success">
                 <div class="card-body">

@@ -9,7 +9,7 @@ use App\Http\Controllers\ParkController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\Tourist;
-use App\Http\Controllers\TripPlannerController;
+use App\Http\Controllers\SmartTripController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,19 +18,28 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/map', [HomeController::class, 'map'])->name('map');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::post('/contact', [HomeController::class, 'sendContact'])->name('contact.send')->middleware('throttle:5,1');
 
-Route::get('/parks', [ParkController::class, 'index'])->name('parks.index');
-Route::get('/parks/compare', [ParkController::class, 'compare'])->name('parks.compare');
+// Murchison Falls smart tourism (main features)
+Route::get('/plan', [SmartTripController::class, 'plan'])->name('plan.index');
+Route::get('/budget', [SmartTripController::class, 'budget'])->name('budget');
+Route::get('/map', [SmartTripController::class, 'map'])->name('map');
+Route::get('/explore', [SmartTripController::class, 'explore'])->name('explore');
+Route::get('/park', [SmartTripController::class, 'about'])->name('park');
+Route::get('/assistant', [SmartTripController::class, 'assistant'])->name('assistant');
+Route::post('/assistant/ask', [SmartTripController::class, 'ask'])->name('assistant.ask')->middleware('throttle:20,1');
+Route::get('/updates', [SmartTripController::class, 'updates'])->name('updates');
+
+// Older multi-park addresses now lead to the Murchison Falls pages
+Route::redirect('/parks', '/park')->name('parks.index');
+Route::redirect('/parks/compare', '/plan')->name('parks.compare');
+Route::redirect('/planner', '/plan')->name('planner.index');
+Route::redirect('/planner/results', '/plan')->name('planner.results');
 Route::get('/parks/{park}', [ParkController::class, 'show'])->name('parks.show');
 Route::get('/parks/{park}/tour', [TourController::class, 'show'])->name('tour.show');
 Route::post('/scenes/{scene}/view', [TourController::class, 'logScene'])->name('tour.scene-view')->middleware('throttle:60,1');
-
-Route::get('/planner', [TripPlannerController::class, 'index'])->name('planner.index');
-Route::match(['get', 'post'], '/planner/results', [TripPlannerController::class, 'results'])->name('planner.results');
 
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{package}', [PackageController::class, 'show'])->name('packages.show');
@@ -81,8 +90,8 @@ Route::middleware(['auth', 'role:tourist'])->group(function () {
 Route::middleware(['auth', 'role:tourist'])->prefix('my')->name('tourist.')->group(function () {
     Route::get('/', [Tourist\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/favourites/{park}', [Tourist\DashboardController::class, 'toggleFavourite'])->name('favourites.toggle');
-    Route::post('/plans', [Tourist\DashboardController::class, 'savePlan'])->name('plans.store');
-    Route::delete('/plans/{plan}', [Tourist\DashboardController::class, 'deletePlan'])->name('plans.destroy');
+    Route::post('/plans', [SmartTripController::class, 'savePlan'])->name('plans.store');
+    Route::delete('/plans/{plan}', [SmartTripController::class, 'deletePlan'])->name('plans.destroy');
 
     Route::get('/bookings', [Tourist\BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/new', [Tourist\BookingController::class, 'create'])->name('bookings.create');

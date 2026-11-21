@@ -1,23 +1,25 @@
-# Pearl360 — Uganda Parks 360° Virtual Tour & Smart Trip Planner
+# Murchison Falls Smart Tourism Platform (Laravel 12)
 
-A web-based 360° virtual tour and smart trip-planning system for Uganda's national parks. It is the implementation for the Group 12 research proposal (MUBS, Bachelor of Business Computing). The case study is the **Uganda Wildlife Authority (UWA)**.
+A web-based **smart trip planning system with 360° virtual exploration for Murchison Falls National Park**. It is the implementation for the Group 12 project (MUBS, Bachelor of Business Computing). The case study is the **Uganda Wildlife Authority (UWA)**.
 
-Built with **Laravel 12 (PHP 8.2+)**, **MySQL**, **Bootstrap 5**, **Pannellum** (360° viewer), **Leaflet + OpenStreetMap** (maps) and **Chart.js** (analytics). Online payments use **Flutterwave** (MTN MoMo, Airtel Money, cards). SMS goes through **Africa's Talking**.
+Built with **Laravel 12 (PHP 8.2+)**, **MySQL**, **Bootstrap 5**, **Pannellum** (360° viewer), **Leaflet + OpenStreetMap** (maps) and **Chart.js** (analytics). Online payments use **Flutterwave** (MTN MoMo, Airtel Money, cards). SMS goes through **Africa's Talking**. The optional AI assistant uses **Claude** (Anthropic PHP SDK).
 
 ## Features
 
 | Module | What it does |
 |---|---|
-| Park information | Profiles of all **10 UWA national parks**: description, activities with indicative costs, best months, difficulty, how to get there, gallery (photos, MP4 videos, YouTube), reviews |
-| 360° virtual tours | 3 scenes per park, linked by clickable hotspots, with info points, auto-rotate, full screen and phone **motion/VR mode**. Every scene view is logged for analytics |
-| Interactive map | All parks on Leaflet with street, satellite and terrain layers, search, "fly to", popups with a tour link, and "my location" distances |
-| Smart trip planner | Rule-based recommender that scores every park out of 100 (interests 40, fitness 20, budget 15, season 15, days 10) and explains each ranking |
-| Compare parks | Side-by-side comparison of 2–4 parks |
-| Bookings | Tourist sends an enquiry → operator sends a quote → tourist **pays online** → operator confirms → trip completed → tourist reviews |
-| Online payments | MTN Mobile Money, Airtel Money, Visa/Mastercard via Flutterwave. Includes an offline **simulator** for demos |
-| SMS + email | Alerts at every booking step for tourist, operator and admin. There is also an admin **SMS centre** for single messages and broadcasts |
-| Analytics | Admin: views per park, top scenes, popular interests, bookings per park, status, 12-month trends, revenue, CSV export for Excel/SPSS. Operator: enquiries, revenue, package views |
-| User management | Roles: **admin (UWA)**, **tourist**, **tour operator**. Operators must be verified by the admin before tourists can see them |
+| **Smart itinerary (main feature)** | `/plan` – timed day-by-day plan from the visitor's dates, days, group, visitor category, interests, fitness, budget level, pace, transport and must-do activities. Explains every choice, lists what was left out and why, adds travel, overnight stays, tips, a packing list, the weather for each day and a cost estimate. Save (tourists), share by link, print, show on the map, **book this itinerary** with an operator, and **view in 360°** for each activity that has a scene |
+| Travel budgeting | `/budget` – park entry, activities, accommodation, meals, transport, vehicle entry, ferry and contingency in US$ and UGX |
+| Smart navigation | `/map` – attractions, gates and towns on Leaflet, the approximate route from Kampala, distances and Google Maps directions |
+| Virtual exploration | `/explore` – 360° scenes linked by hotspots, each scene tied to an activity (launch trip, game drive, chimpanzee tracking…) |
+| AI travel assistant | `/assistant` – answers questions and recommends activities; uses Claude when `ANTHROPIC_API_KEY` is set, built-in answers from the park data otherwise |
+| Travel updates | `/updates` – live 16-day forecast at Paraa (Open-Meteo), best months, travel notices |
+| Bookings | Tourist sends an enquiry (from a package or their itinerary) → operator quotes → tourist **pays online** → operator confirms → trip completed |
+| Online payments | MTN Mobile Money, Airtel Money, Visa/Mastercard via Flutterwave, with an offline **simulator** for demos |
+| SMS + email | Alerts at every booking step for tourist, operator and admin, plus an admin **SMS centre** |
+| Administration | Roles **admin (UWA)**, **tourist**, **tour operator**; operator approval; several admins; login records; analytics; upload 360° photos **per activity** and place hotspots by clicking in the photo |
+
+All planning data (activities, fees, places, seasons, notices) is in **`config/murchison.php`**. Fees are planning estimates – update them from the current UWA tariff.
 
 ## Quick start (Windows + XAMPP), the easy way
 
@@ -102,10 +104,10 @@ The seeder draws **placeholder** landscapes (in `public/uploads/seed/`) so every
 | Gallery photos (many at once) | Admin → Parks → **Photos & videos** | Tick "Use as cover photo" on any image |
 | Videos | Same page: upload MP4 (≤100 MB) **or** paste a YouTube link | For big files, raise `upload_max_filesize` / `post_max_size` in `php.ini` |
 | Feature video on the park page | Admin → Parks → *Edit* → Feature video | |
-| 360° panoramas | Admin → Parks → **360° scenes** → Upload | Must be **equirectangular** (width = 2 × height). Use an Insta360 / Ricoh Theta, or a phone app such as Google Street View. 4096×2048 JPG is ideal |
+| 360° panoramas | Admin → Parks → **360° scenes** → Upload, and choose the **activity** the scene shows | Must be **equirectangular** (width = 2 × height). Use a 360° camera (Insta360, Ricoh Theta) or stitch photos with Hugin/PTGui. 4096×2048 JPG is ideal |
 | Hotspots | Open a scene → **click in the panorama** to capture pitch/yaw → choose "Link to scene" or "Information point" | |
 | New park / wildlife reserve | Admin → Parks → Add park → **click the map** to place the pin | |
-| **Site logo** | Admin → Settings → Logo, **or** put your file in `public/images` named `logo.png` (or `logo.jpg` / `logo.webp`) | PNG, JPG or WebP (SVG uploads are refused for security), about 256×256 px. Do not rename a PNG to `logo.svg`. Untick "Show the name Pearl360" if your logo already contains the name. "Remove my logo" goes back to the default. Used in the navbar, footer, browser tab and payment page |
+| **Site logo** | Admin → Settings → Logo, **or** put your file in `public/images` named `logo.png` (or `logo.jpg` / `logo.webp`) | PNG, JPG or WebP (SVG uploads are refused for security), about 256×256 px. Do not rename a PNG to `logo.svg`. Untick "Show the name Murchison Falls" if your logo already contains the name. "Remove my logo" goes back to the default. Used in the navbar, footer, browser tab and payment page |
 | Home page hero image, contacts, USD rate | Admin → Settings | |
 
 All uploads are saved to `public/uploads/…`, so they work on shared hosting without `storage:link`.
@@ -155,7 +157,7 @@ After editing `.env` on a live server, run `php artisan config:clear`.
 php artisan test
 ```
 
-24 tests (in `tests/Feature` and `tests/Unit`) cover operator registration → admin approval/rejection, login records, password reset, multiple admins, park videos, every page for every role, access control, operator registration, the trip planner's rankings, and the full **enquiry → quote → Mobile Money payment → confirmation** flow including SMS alerts, plus Ugandan phone-number formatting and YouTube link handling.
+44 tests (in `tests/Feature` and `tests/Unit`) cover the smart itinerary engine (timing rules, fitness and interest filters, must-do activities, pace, warnings, costs, share links), the planner, budget, map, explore, assistant and updates pages, saving and booking an itinerary, linking 360° scenes to activities, operator registration → admin approval/rejection, login records, password reset, multiple admins, park videos, every page for every role, access control, operator registration, the trip planner's rankings, and the full **enquiry → quote → Mobile Money payment → confirmation** flow including SMS alerts, plus Ugandan phone-number formatting and YouTube link handling.
 
 ## Project structure (the Laravel files we use)
 

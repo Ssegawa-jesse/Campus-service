@@ -44,13 +44,18 @@ class UserSeeder extends Seeder
         $operators = [
             ['email' => 'operator@pearl360.test', 'company' => 'Kob & Crane Safaris (Demo)', 'phone' => '256700000010',
                 'parks' => ['queen-elizabeth-national-park', 'bwindi-impenetrable-national-park', 'lake-mburo-national-park', 'kibale-national-park', 'mgahinga-gorilla-national-park'],
-                'about' => 'Demo operator for testing. Specialises in the south-western primate and savannah circuit.'],
+                'about' => 'Demo operator for testing. Murchison Falls safaris from Kampala.',
+                'packages' => [[3, '3-Day Murchison Falls Safari', 1850000, 'Top of the Falls on arrival, a dawn game drive on the Buligi tracks and the launch trip to the bottom of the falls.'],
+                    [4, '4-Day Murchison Falls & Ziwa Rhinos', 2600000, 'Rhino tracking at Ziwa on the way, game drive, launch trip, delta cruise for the shoebill and the Top of the Falls.']]],
             ['email' => 'nile@pearl360.test', 'company' => 'Pearl Trails Uganda (Demo)', 'phone' => '256700000011',
                 'parks' => ['murchison-falls-national-park', 'kidepo-valley-national-park', 'mount-elgon-national-park'],
-                'about' => 'Demo operator for testing. Northern and eastern Uganda specialists.'],
+                'about' => 'Demo operator for testing. Northern Uganda specialists based in Masindi.',
+                'packages' => [[2, '2-Day Murchison Falls Express', 1150000, 'Launch trip to the bottom of the falls and a morning game drive.'],
+                    [3, '3-Day Chimps & Falls', 2100000, 'Chimpanzee tracking at Kaniyo Pabidi, launch trip and game drive.']]],
             ['email' => 'peaks@pearl360.test', 'company' => 'Mountains of the Moon Treks (Demo)', 'phone' => '256700000012',
                 'parks' => ['rwenzori-mountains-national-park', 'semuliki-national-park', 'kibale-national-park'],
-                'about' => 'Demo operator for testing. Hiking and birding in the Albertine Rift.'],
+                'about' => 'Demo operator for testing. Birding and walking safaris.',
+                'packages' => [[3, '3-Day Shoebill & Birding Safari', 1750000, 'Delta cruise for the shoebill, guided birding walk at Paraa and a nature walk in Rabongo Forest.']]],
             ['email' => 'newoperator@pearl360.test', 'company' => 'Savannah Horizons Tours (Demo)', 'phone' => '256700000013', 'pending' => true,
                 'parks' => ['kidepo-valley-national-park', 'lake-mburo-national-park'],
                 'about' => 'Demo operator that has just registered and is waiting for admin approval.'],
@@ -76,17 +81,20 @@ class UserSeeder extends Seeder
             $operator->parks()->sync($parks->pluck('id'));
 
             $operator->packages()->delete();
-            foreach ($parks as $park) {
-                $days = max(2, $park->min_days + 1);
-                $price = (int) (round(usd_to_ugx($park->min_cost + 120 * $days) / 10000) * 10000);
+            $park = Park::where('slug', config('murchison.park_slug'))->first();
+            if (! $park) {
+                continue;
+            }
+            $operator->parks()->syncWithoutDetaching([$park->id]);
+            foreach ($o['packages'] ?? [] as [$days, $title, $priceUgx, $text]) {
                 $operator->packages()->create([
                     'park_id' => $park->id,
-                    'title' => "{$days}-Day ".Str::before($park->name, ' National Park').' Safari',
-                    'slug' => Str::slug("{$days} day {$park->name} {$operator->company_name}"),
-                    'description' => "A {$days}-day guided trip to {$park->name}. {$park->tagline}. Includes the park's signature experiences with an experienced driver-guide.",
+                    'title' => $title,
+                    'slug' => Str::slug("{$title} {$operator->company_name}"),
+                    'description' => $text,
                     'includes' => "Transport in a 4x4 safari vehicle\nPark entry fees\nAccommodation & meals\nEnglish-speaking driver-guide\nDrinking water",
                     'days' => $days,
-                    'price_ugx' => $price,
+                    'price_ugx' => $priceUgx,
                     'max_group' => 6,
                     'is_active' => true,
                 ]);

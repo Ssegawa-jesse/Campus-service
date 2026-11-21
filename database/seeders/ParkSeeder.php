@@ -16,7 +16,11 @@ class ParkSeeder extends Seeder
 {
     public function run(PlaceholderImageGenerator $images): void
     {
-        foreach ($this->parks() as $i => $data) {
+        // This system focuses on Murchison Falls National Park only.
+        $parks = array_values(array_filter($this->parks(), fn ($p) => Str::slug($p['name']) === config('murchison.park_slug')));
+        Park::where('slug', '!=', config('murchison.park_slug'))->delete();
+
+        foreach ($parks as $i => $data) {
             $scenes = $data['scenes'];
             $activities = $data['activities'];
             $theme = $data['theme'];
@@ -29,8 +33,16 @@ class ParkSeeder extends Seeder
 
             $park = Park::updateOrCreate(['slug' => $slug], $data + ['slug' => $slug, 'cover_image' => $cover]);
 
+            // Activities come from the planning data in config/murchison.php (same as the smart itinerary).
             $park->activities()->delete();
-            $park->activities()->createMany($activities);
+            $park->activities()->createMany(collect(config('murchison.activities'))->map(fn ($a) => [
+                'name' => $a['name'],
+                'category' => $a['interests'][0],
+                'fitness_level' => $a['fitness'],
+                'duration' => $a['hours'].' hours',
+                'indicative_cost' => $a['fee']['fnr'] + ($a['group_fee']['fnr'] ?? 0),
+                'description' => $a['description'],
+            ])->values()->all());
 
             // Gallery: two extra placeholder photos per park
             $park->media()->delete();
@@ -45,6 +57,7 @@ class ParkSeeder extends Seeder
             foreach ($scenes as $s => $scene) {
                 $path = $this->image("{$dir}/pano-{$s}.jpg", fn ($full) => $images->panorama($full, $scene['theme'], ($i + 1) * 10 + $s), 'images/placeholder-pano.jpg');
                 $created[] = $park->scenes()->create([
+                    'activity_key' => $scene['activity'] ?? null,
                     'title' => $scene['title'],
                     'description' => $scene['description'],
                     'image_path' => $path,
@@ -174,9 +187,9 @@ class ParkSeeder extends Seeder
                     ['name' => 'Budongo chimpanzee tracking', 'category' => 'primates', 'fitness_level' => 2, 'duration' => '3–4 hours', 'indicative_cost' => 130, 'description' => 'Track chimps in the Kaniyo Pabidi forest.'],
                 ],
                 'scenes' => [
-                    ['title' => 'Top of Murchison Falls', 'theme' => 'water', 'description' => 'The Nile forces its way through a 7 m wide gap.', 'info' => [['Power of the Nile', 'Around 300 cubic metres of water a second pass through the gorge.'], ['Uhuru Falls', 'A second, wider fall formed after the 1962 floods.']]],
-                    ['title' => 'Paraa & the Victoria Nile', 'theme' => 'water', 'description' => 'The ferry crossing and launch jetty.', 'info' => [['Ferry', 'The Paraa ferry links the southern and northern banks.']]],
-                    ['title' => 'Buligi grasslands', 'theme' => 'savannah', 'description' => 'Borassus palms and giraffe country.', 'info' => [['Rothschild\'s giraffe', 'Murchison holds one of the largest populations of this subspecies.']]],
+                    ['title' => 'Top of Murchison Falls', 'activity' => 'top-falls', 'theme' => 'water', 'description' => 'The Nile forces its way through a 7 m wide gap.', 'info' => [['Power of the Nile', 'Around 300 cubic metres of water a second pass through the gorge.'], ['Uhuru Falls', 'A second, wider fall formed after the 1962 floods.']]],
+                    ['title' => 'Paraa & the Victoria Nile', 'activity' => 'launch', 'theme' => 'water', 'description' => 'The ferry crossing and launch jetty.', 'info' => [['Ferry', 'The Paraa ferry links the southern and northern banks.']]],
+                    ['title' => 'Buligi grasslands', 'activity' => 'game-drive', 'theme' => 'savannah', 'description' => 'Borassus palms and giraffe country.', 'info' => [['Rothschild\'s giraffe', 'Murchison holds one of the largest populations of this subspecies.']]],
                 ],
             ],
             [

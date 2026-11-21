@@ -22,11 +22,13 @@ class SceneController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:150',
             'description' => 'nullable|string|max:2000',
+            'activity_key' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(config('murchison.activities')))],
             'image' => 'required|image|max:20480',
         ]);
 
         $scene = $park->scenes()->create([
             'title' => $data['title'],
+            'activity_key' => $data['activity_key'] ?? null,
             'description' => $data['description'] ?? null,
             'image_path' => $this->storeUpload($request->file('image'), 'scenes/'.$park->slug),
             'sort_order' => (int) $park->scenes()->max('sort_order') + 1,
@@ -51,6 +53,7 @@ class SceneController extends Controller
             'initial_pitch' => 'nullable|numeric|between:-90,90',
             'initial_yaw' => 'nullable|numeric|between:-180,180',
             'sort_order' => 'nullable|integer|min:0',
+            'activity_key' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(config('murchison.activities')))],
             'image' => 'nullable|image|max:20480',
         ]);
 
@@ -59,7 +62,7 @@ class SceneController extends Controller
         }
         unset($data['image']);
 
-        $scene->update(array_filter($data, fn ($v) => $v !== null) + ['description' => $data['description'] ?? null]);
+        $scene->update(array_filter($data, fn ($v) => $v !== null) + ['description' => $data['description'] ?? null, 'activity_key' => $data['activity_key'] ?? null]);
 
         return back()->with('success', 'Scene updated.');
     }

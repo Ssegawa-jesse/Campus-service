@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', '360° Virtual Tour – '.$park->name)
+@section('title', '360° explore – '.$park->name)
 @section('no_footer', true)
 @section('no_flash', true)
 
@@ -27,22 +27,10 @@
             @foreach ($scenes as $scene)
                 <button class="scene-btn" data-scene="scene-{{ $scene->id }}">
                     <img src="{{ $scene->imageUrl() }}" alt="" loading="lazy">
-                    <span class="small">{{ $scene->title }}</span>
+                    <span class="small">{{ $scene->title }}@if ($scene->activityName())<span class="d-block text-gold" style="font-size:.72rem">{{ $scene->activityName() }}</span>@endif</span>
                 </button>
             @endforeach
-            <hr class="border-secondary">
-            <label class="small text-white-50">Jump to another park</label>
-            <select class="form-select form-select-sm" onchange="if(this.value) location=this.value">
-                <option value="">Choose…</option>
-                @foreach ($otherParks as $p)<option value="{{ route('tour.show', $p) }}">{{ $p->name }}</option>@endforeach
-            </select>
-            @auth
-                @if (auth()->user()->isTourist())
-                    <a href="{{ route('tourist.bookings.create', ['park' => $park->slug]) }}" class="btn btn-gold btn-sm w-100 mt-3">Book this park</a>
-                @endif
-            @else
-                <a href="{{ route('planner.index') }}" class="btn btn-gold btn-sm w-100 mt-3">Plan a trip here</a>
-            @endauth
+            <a href="{{ route('plan.index') }}" class="btn btn-gold btn-sm w-100 mt-3"><i class="bi bi-magic"></i> Plan a trip with these activities</a>
         </div>
     @endif
 </div>
@@ -50,7 +38,7 @@
 
 @if ($scenes->isNotEmpty())
 @push('scripts')
-@php $descriptions = $scenes->mapWithKeys(fn ($s) => ['scene-'.$s->id => ['title' => $s->title, 'text' => $s->description, 'id' => $s->id]]); @endphp
+@php $descriptions = $scenes->mapWithKeys(fn ($s) => ['scene-'.$s->id => ['title' => $s->title, 'text' => $s->description, 'activity' => $s->activityName(), 'id' => $s->id]]); @endphp
 <script src="{{ asset('vendor/pannellum/pannellum.js') }}"></script>
 <script>
 const config = @json($config);
@@ -62,7 +50,7 @@ const logged = new Set();
 function onScene(id) {
     const d = descriptions[id];
     const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    caption.innerHTML = `<strong>${esc(d.title)}</strong>${d.text ? '<div class="small text-white-50">' + esc(d.text) + '</div>' : ''}`;
+    caption.innerHTML = `<strong>${esc(d.title)}</strong>${d.activity ? ' <span class="badge bg-warning text-dark">' + esc(d.activity) + '</span>' : ''}${d.text ? '<div class="small text-white-50">' + esc(d.text) + '</div>' : ''}`;
     document.querySelectorAll('.scene-btn').forEach(b => b.classList.toggle('active', b.dataset.scene === id));
     if (!logged.has(id)) { logged.add(id); P360.post(`{{ url('scenes') }}/${d.id}/view`); }
 }

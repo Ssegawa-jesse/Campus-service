@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Scene extends Model
 {
     protected $fillable = [
-        'park_id', 'title', 'image_path', 'description', 'initial_pitch', 'initial_yaw', 'audio_path', 'sort_order',
+        'park_id', 'activity_key', 'title', 'image_path', 'description', 'initial_pitch', 'initial_yaw', 'audio_path', 'sort_order',
     ];
 
     protected function casts(): array
@@ -43,5 +43,11 @@ class Scene extends Model
             'yaw' => $this->initial_yaw,
             'hotSpots' => $this->hotspots->map(fn (Hotspot $h) => $h->toPannellum())->values()->all(),
         ];
+    }
+
+    /** Name of the Murchison Falls activity this scene shows, if any. */
+    public function activityName(): ?string
+    {
+        return $this->activity_key ? config('murchison.activities.'.$this->activity_key.'.name') : null;
     }
 }

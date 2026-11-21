@@ -1,0 +1,34 @@
+/* Murchison Falls Smart Tourism – additions to pearl360.css */
+.timeline { list-style: none; padding: 0; border-left: 3px solid #e2ece6; }
+.timeline li { position: relative; padding: 0 0 14px 18px; }
+.timeline li::before { content: ""; position: absolute; left: -8px; top: 5px; width: 13px; height: 13px; border-radius: 50%; background: var(--forest, #1f4d3a); border: 2px solid #fff; }
+.timeline li.travel::before { background: #1d5c7a; }
+.timeline li.stay::before { background: #d9822b; }
+.timeline li.tip::before { display: none; }
+.timeline .t-time { font-weight: 700; color: var(--forest, #1f4d3a); margin-right: 8px; font-variant-numeric: tabular-nums; }
+.timeline .tip-box { background: #fbeedf; border-radius: 8px; padding: 6px 10px; }
+.feature-card { display: flex; gap: 14px; text-decoration: none; color: inherit; transition: transform .15s, border-color .15s; border: 1px solid #e3e8e4 !important; }
+.feature-card:hover { transform: translateY(-2px); border-color: #2e6b52 !important; }
+.feature-card .icon { flex: 0 0 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; background: #e5efe9; }
+.feature-card.main { border: 2px solid #d9822b !important; background: linear-gradient(0deg, #fff, #fbeedf); }
+.mf-map { height: 600px; border-radius: 14px; overflow: hidden; z-index: 0; }
+@media (max-width: 991px) { .mf-map { height: 420px; } }
+.place-item { cursor: pointer; border: 1px solid #e3e8e4; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; background: #fff; }
+.place-item:hover, .place-item.on { border-color: #2e6b52; background: #eef5f1; }
+.chat-box { display: flex; flex-direction: column; height: 560px; }
+.chat-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px; }
+.msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; white-space: pre-wrap; font-size: .95rem; }
+.msg.user { align-self: flex-end; background: #1f4d3a; color: #fff; border-bottom-right-radius: 4px; }
+.msg.bot { align-self: flex-start; background: #fff; border: 1px solid #e3e8e4; border-bottom-left-radius: 4px; }
+.msg .src { display: block; font-size: .72rem; opacity: .65; margin-top: 4px; }
+.month-tile { border-radius: 10px; padding: 8px; font-size: .82rem; background: #fff; border: 1px solid #e3e8e4; height: 100%; }
+.month-tile.dry { border-left: 4px solid #d9822b; }
+.month-tile.wet { border-left: 4px solid #1d5c7a; }
+@media print {
+  .p360-nav, .p360-footer, .no-print { display: none !important; }
+  .col-lg-8 { width: 100% !important; }
+  .card { box-shadow: none !important; break-inside: avoid; }
+}
+.p360-nav .nav-link { white-space: nowrap; padding-left: .55rem !important; padding-right: .55rem !important; font-size: .93rem; }
+.p360-nav .btn { white-space: nowrap; }
+.card.feature-card { flex-direction: row; align-items: flex-start; }

@@ -18,7 +18,7 @@
                 <div class="col-md-8">
                     <label class="form-label">Site logo <small class="text-muted">(PNG, JPG or WebP, max 2 MB; a square image about 256 × 256 px looks best)</small></label>
                     <input type="file" name="site_logo" accept="image/png,image/jpeg,image/webp" class="form-control">
-                    <div class="form-check mt-2"><input type="hidden" name="logo_show_name" value="0"><input class="form-check-input" type="checkbox" name="logo_show_name" value="1" id="lsn" @checked($settings['logo_show_name'] !== '0')><label class="form-check-label" for="lsn">Show the name "Pearl360" next to the logo (untick if your logo already contains the name)</label></div>
+                    <div class="form-check mt-2"><input type="hidden" name="logo_show_name" value="0"><input class="form-check-input" type="checkbox" name="logo_show_name" value="1" id="lsn" @checked($settings['logo_show_name'] !== '0')><label class="form-check-label" for="lsn">Show the name "Murchison Falls" next to the logo (untick if your logo already contains the name)</label></div>
                     @if ($settings['site_logo'])
                         <div class="form-check"><input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="rl"><label class="form-check-label" for="rl">Remove my logo and go back to the default</label></div>
                     @endif

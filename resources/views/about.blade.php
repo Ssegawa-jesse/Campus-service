@@ -4,30 +4,31 @@
 @section('content')
 <section class="bg-forest py-5 mb-5">
     <div class="container-xl text-white">
-        <div class="section-kicker text-gold">About Pearl360</div>
-        <h1 class="display-5 fw-bold">A 360° Virtual Tour & Smart Trip Planning System for Uganda's National Parks</h1>
-        <p class="lead text-white-50 mb-0">A research project by Group 12, Bachelor of Business Computing, Makerere University Business School – case study: Uganda Wildlife Authority (UWA).</p>
+        <div class="section-kicker text-gold">About the project</div>
+        <h1 class="display-5 fw-bold">A Web-based Smart Trip Planning System with 360° Virtual Exploration for Murchison Falls National Park</h1>
+        <p class="lead text-white-50 mb-0">A project by Group 12, Bachelor of Business Computing, Makerere University Business School – case study: Uganda Wildlife Authority (UWA).</p>
     </div>
 </section>
 <div class="container-xl">
     <div class="row g-5">
         <div class="col-lg-7">
             <h3>The problem</h3>
-            <p>Uganda's national parks hold world-class attractions, yet potential tourists find it hard to picture the experience in each park before travelling. Information about parks, activities, difficulty levels and costs is scattered across many websites, and lesser-known parks such as Kidepo Valley, Semuliki and Mount Elgon receive far less attention.</p>
+            <p>Visitors to Murchison Falls National Park find it hard to plan a good trip. Each activity has its own best time and place – game drives at dawn on the northern bank across the ferry, boat trips from Paraa, chimpanzee tracking in the south – and information on fees, seasons and routes is spread over several websites. There was no tool that turns a visitor's interests and days into a timed plan with a cost.</p>
             <h3 class="mt-4">Our solution</h3>
             <ul>
-                <li><strong>360° virtual tours</strong> of key attractions in every park, with clickable hotspots and a mobile motion (VR) mode.</li>
-                <li><strong>A smart trip planner</strong> – a knowledge-based recommender that scores each park on interests, fitness, budget, travel month and days available.</li>
-                <li><strong>Centralised park information</strong>, an interactive map and side-by-side comparison.</li>
-                <li><strong>Online booking</strong> with verified tour operators, <strong>Mobile Money / card payments</strong> and <strong>SMS + email notifications</strong>.</li>
-                <li><strong>Analytics</strong> for UWA and operators: most viewed parks and scenes, popular interests, bookings and revenue.</li>
+                <li><strong>Smart itinerary (main feature)</strong> – a timed day-by-day plan from the visitor's dates, interests, fitness, budget level and pace, with reasons, a packing list, the weather and a cost estimate.</li>
+                <li><strong>Travel budgeting</strong> in US dollars and Uganda shillings.</li>
+                <li><strong>Smart navigation</strong> – a map of attractions and routes with directions.</li>
+                <li><strong>Virtual exploration</strong> – 360° scenes with hotspots for the activities in the park.</li>
+                <li><strong>AI travel assistant</strong> and <strong>travel updates</strong> with a live forecast.</li>
+                <li><strong>Booking</strong> with approved tour operators, <strong>Mobile Money / card payments</strong> and <strong>SMS notifications</strong>.</li>
             </ul>
-            <h3 class="mt-4">Research objectives</h3>
+            <h3 class="mt-4">Project objectives</h3>
             <ol>
-                <li>To examine how tourists currently search for information about and plan visits to Uganda's national parks.</li>
-                <li>To identify the user and system requirements for a virtual tour and smart trip planning system.</li>
-                <li>To design and develop a web-based system with 360° virtual tours, personalised recommendations, centralised park information and booking features.</li>
-                <li>To test and validate the system with tourists, tour operators and UWA staff.</li>
+                <li>To study and analyse how visitors plan trips to Murchison Falls National Park, and the challenges they face.</li>
+                <li>To identify the user and system requirements for a smart trip planning system for the park.</li>
+                <li>To design and develop the web-based smart trip planning system.</li>
+                <li>To test and validate the system with visitors, tour operators and UWA staff.</li>
             </ol>
         </div>
         <div class="col-lg-5">

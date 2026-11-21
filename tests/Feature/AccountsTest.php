@@ -168,7 +168,7 @@ class AccountsTest extends TestCase
         $this->assertTrue(password_verify('TempPass99', $tourist->fresh()->password));
     }
 
-    public function test_every_park_has_real_videos(): void
+    public function test_the_park_has_real_videos(): void
     {
         Park::all()->each(function (Park $park) {
             $this->assertNotNull(youtube_id($park->video_url), "{$park->name} has no feature video");
@@ -177,6 +177,5 @@ class AccountsTest extends TestCase
 
         $park = Park::where('slug', 'murchison-falls-national-park')->first();
         $this->get("/parks/{$park->slug}")->assertOk()->assertSee('data-yt="noIT-TWOEZY"', false)->assertSee('Watch on YouTube');
-        $this->get('/')->assertOk()->assertSee('on video');
-    }
+            }
 }

@@ -20,10 +20,14 @@ class PagesTest extends TestCase
         $this->seed(DatabaseSeeder::class);
     }
 
-    public function test_all_ten_parks_are_seeded_with_tours(): void
+    public function test_only_murchison_falls_is_seeded_with_activity_scenes(): void
     {
-        $this->assertSame(10, Park::count());
-        Park::all()->each(fn ($p) => $this->assertGreaterThanOrEqual(3, $p->scenes()->count(), $p->name));
+        $this->assertSame(1, Park::count());
+        $park = Park::first();
+        $this->assertSame(config('murchison.park_slug'), $park->slug);
+        $this->assertGreaterThanOrEqual(3, $park->scenes()->count());
+        $this->assertSame(['game-drive', 'launch', 'top-falls'], $park->scenes()->whereNotNull('activity_key')->pluck('activity_key')->sort()->values()->all());
+        $this->assertSame(count(config('murchison.activities')), $park->activities()->count());
     }
 
     public function test_public_pages_load(): void
@@ -31,10 +35,14 @@ class PagesTest extends TestCase
         $park = Park::first();
         $package = \App\Models\TourPackage::first();
 
-        foreach (['/', '/map', '/about', '/contact', '/parks', '/parks?interest=gorillas&sort=cost', '/parks/compare',
-            "/parks/{$park->slug}", "/parks/{$park->slug}/tour", '/planner', '/packages',
+        foreach (['/', '/plan', '/budget', '/budget?days=4&adults=2&children=1&residency=eac&tier=budget&transport=self&origin=masindi&activities[]=chimps',
+            '/map', '/map?ids=buligi,paraa', '/explore', '/park', '/assistant', '/updates', '/about', '/contact',
+            "/parks/{$park->slug}", "/parks/{$park->slug}/tour", '/packages',
             "/packages/{$package->slug}", "/operators/{$package->operator->slug}", '/login', '/register'] as $url) {
             $this->get($url)->assertOk();
+        }
+        foreach (['/parks' => '/park', '/planner' => '/plan', '/parks/compare' => '/plan'] as $old => $new) {
+            $this->get($old)->assertRedirect($new);
         }
     }
 

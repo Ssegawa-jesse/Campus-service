@@ -5,25 +5,26 @@
             <div class="col-md-4">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <img src="{{ site_logo() }}" alt="{{ config('pearl360.name') }}" class="site-logo site-logo-footer" onerror="this.onerror=null;this.src='{{ default_logo() }}'">
-                    @if (setting('logo_show_name', '1') !== '0')<span class="brand-text text-white fs-4">Pearl<span>360</span></span>@endif
+                    @if (setting('logo_show_name', '1') !== '0')<span class="brand-text text-white fs-5">Murchison<span> Falls</span></span>@endif
                 </div>
-                <p class="text-white-50 small">{{ setting('site_tagline', 'See Uganda\'s national parks in 360° before you go.') }}</p>
+                <p class="text-white-50 small">{{ setting('site_tagline', 'Smart trip planning for Murchison Falls National Park.') }}</p>
                 <p class="text-white-50 small mb-0">A MUBS Business Computing research project (Group 12) · Case study: Uganda Wildlife Authority.</p>
             </div>
             <div class="col-6 col-md-2">
                 <h6 class="text-gold">Explore</h6>
                 <ul class="list-unstyled small">
-                    <li><a href="{{ route('parks.index') }}">All parks</a></li>
-                    <li><a href="{{ route('map') }}">Interactive map</a></li>
-                    <li><a href="{{ route('planner.index') }}">Trip planner</a></li>
-                    <li><a href="{{ route('parks.compare') }}">Compare parks</a></li>
+                    <li><a href="{{ route('plan.index') }}">Smart itinerary</a></li>
+                    <li><a href="{{ route('budget') }}">Travel budget</a></li>
+                    <li><a href="{{ route('map') }}">Map &amp; routes</a></li>
+                    <li><a href="{{ route('explore') }}">360° explore</a></li>
+                    <li><a href="{{ route('park') }}">About the park</a></li>
                 </ul>
             </div>
             <div class="col-6 col-md-3">
                 <h6 class="text-gold">For partners</h6>
                 <ul class="list-unstyled small">
                     <li><a href="{{ route('register', ['as' => 'operator']) }}">Register as a tour operator</a></li>
-                    <li><a href="{{ route('packages.index') }}">Safari packages</a></li>
+                    <li><a href="{{ route('packages.index') }}">Tour packages</a></li>
                     <li><a href="{{ route('contact') }}">Contact us</a></li>
                 </ul>
             </div>
@@ -39,7 +40,7 @@
         </div>
         <hr class="border-secondary">
         <div class="d-flex flex-wrap justify-content-between small text-white-50">
-            <span>&copy; {{ date('Y') }} Pearl360 Uganda. Park fees shown are indicative – confirm with UWA.</span>
+            <span>&copy; {{ date('Y') }} Murchison Falls Smart Tourism Platform. Fees shown are planning estimates – confirm with UWA.</span>
             <span>Map data &copy; OpenStreetMap contributors · 360° viewer: Pannellum</span>
         </div>
     </div>

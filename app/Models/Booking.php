@@ -21,7 +21,7 @@ class Booking extends Model
 
     protected $fillable = [
         'reference', 'tourist_id', 'operator_id', 'park_id', 'tour_package_id', 'travel_date', 'group_size',
-        'contact_phone', 'message', 'status', 'quoted_amount', 'operator_response', 'responded_at',
+        'contact_phone', 'message', 'itinerary', 'status', 'quoted_amount', 'operator_response', 'responded_at',
     ];
 
     protected function casts(): array
@@ -84,5 +84,13 @@ class Booking extends Model
     public function isPaid(): bool
     {
         return in_array($this->status, ['paid', 'confirmed', 'completed'], true);
+    }
+
+    /** The smart itinerary sent with this booking, built again from its saved choices. */
+    public function itineraryPlan(): ?array
+    {
+        $input = \App\Services\Murchison\SmartItinerary::decode($this->itinerary);
+
+        return $input ? app(\App\Services\Murchison\SmartItinerary::class)->build($input) : null;
     }
 }
