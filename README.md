@@ -28,7 +28,7 @@ All planning data (activities, fees, places, seasons, notices) is in **`config/m
 3. **Double-click `setup.bat`.** It:
    - creates or repairs `.env` (it even fixes a file Notepad saved as `.env.txt`)
    - switches to local mode and generates the app key
-   - creates the `pearl360` MySQL database
+   - creates the `murchison_falls` MySQL database
    - creates the tables and loads the demo data
    - starts the site and opens http://localhost:8000
 

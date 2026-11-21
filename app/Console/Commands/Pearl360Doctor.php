@@ -122,11 +122,11 @@ class Pearl360Doctor extends Command
                 }
                 $pdo = new PDO('sqlite:'.$file);
                 $this->ok("Database: SQLite ({$file})");
-                $this->warnLine('Using SQLite', 'Your proposal uses MySQL. To use XAMPP MySQL set DB_CONNECTION=mysql and DB_DATABASE=pearl360 in .env.');
+                $this->warnLine('Using SQLite', 'Your proposal uses MySQL. To use XAMPP MySQL set DB_CONNECTION=mysql and DB_DATABASE=murchison_falls in .env.');
             } else {
                 $host = $env['DB_HOST'] ?? '127.0.0.1';
                 $port = $env['DB_PORT'] ?? '3306';
-                $name = $env['DB_DATABASE'] ?? 'pearl360';
+                $name = $env['DB_DATABASE'] ?? 'murchison_falls';
                 $user = $env['DB_USERNAME'] ?? 'root';
                 $pass = $env['DB_PASSWORD'] ?? '';
 

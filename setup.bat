@@ -1,11 +1,11 @@
 @echo off
 REM ==================================================================
-REM  Pearl360 one-click setup for Windows / XAMPP
+REM  Murchison Falls Smart Tourism one-click setup for Windows / XAMPP
 REM  1. Start MySQL in the XAMPP Control Panel
 REM  2. Double-click this file
 REM ==================================================================
 cd /d "%~dp0"
-title Pearl360 setup
+title Murchison Falls Smart Tourism setup
 
 where php >nul 2>nul
 if errorlevel 1 (
@@ -50,7 +50,7 @@ if /i "%RESET%"=="Y" (
 
 echo.
 echo ==================================================================
-echo  Pearl360 is ready:  http://localhost:8000
+echo  Murchison Falls Smart Tourism is ready:  http://localhost:8000
 echo  Admin login:  2400725284@mubs.ac.ug   password: Pearl360@2026
 echo  Keep this window open while you use the site. Close it to stop.
 echo ==================================================================
