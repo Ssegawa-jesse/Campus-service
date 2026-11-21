@@ -1,232 +1,120 @@
-# Pearl360 — Uganda Parks 360° Virtual Tour & Smart Trip Planner
+# Murchison Falls Smart Trip Planning Platform (Laravel)
 
-A web-based 360° virtual tour and smart trip-planning system for Uganda's national parks. It is the implementation for the Group 12 research proposal (MUBS, Bachelor of Business Computing). The case study is the **Uganda Wildlife Authority (UWA)**.
+**MUBS IT Project (BBC III).** *Design and Implementation of an AI-Assisted Smart Trip Planning and Interactive 360° Preview Platform for Murchison Falls National Park.*
 
-Built with **Laravel 12 (PHP 8.2+)**, **MySQL**, **Bootstrap 5**, **Pannellum** (360° viewer), **Leaflet + OpenStreetMap** (maps) and **Chart.js** (analytics). Online payments use **Flutterwave** (MTN MoMo, Airtel Money, cards). SMS goes through **Africa's Talking**.
+- **Institution:** Makerere University Business School, Faculty of Computing & Informatics
+- **Supervisor:** Dr. Kasule Abdullah
+- **Team:** Nayiga Sharlot · Ssegawa Jesse · Akech Daniella · Mawanda Jabel · Niyomukunzi H Adeline
+- **Scope:** Murchison Falls National Park (Uganda) only
+- **Research contact / admin:** `2400725284@mubs.ac.ug` · `+256 741 141 433`
 
-## Features
+Stack: **Laravel 12 (PHP 8.2+)**, MySQL (or SQLite), Bootstrap 5, **Leaflet + OpenStreetMap** for the map, **Pannellum** for 360° viewing, Chart.js, the **Anthropic Claude API** (optional) for the assistant, Flutterwave for MTN/Airtel Mobile Money and cards (with an offline simulator), and Africa's Talking for SMS (with a log mode).
 
-| Module | What it does |
-|---|---|
-| Park information | Profiles of all **10 UWA national parks**: description, activities with indicative costs, best months, difficulty, how to get there, gallery (photos, MP4 videos, YouTube), reviews |
-| 360° virtual tours | 3 scenes per park, linked by clickable hotspots, with info points, auto-rotate, full screen and phone **motion/VR mode**. Every scene view is logged for analytics |
-| Interactive map | All parks on Leaflet with street, satellite and terrain layers, search, "fly to", popups with a tour link, and "my location" distances |
-| Smart trip planner | Rule-based recommender that scores every park out of 100 (interests 40, fitness 20, budget 15, season 15, days 10) and explains each ranking |
-| Compare parks | Side-by-side comparison of 2–4 parks |
-| Bookings | Tourist sends an enquiry → operator sends a quote → tourist **pays online** → operator confirms → trip completed → tourist reviews |
-| Online payments | MTN Mobile Money, Airtel Money, Visa/Mastercard via Flutterwave. Includes an offline **simulator** for demos |
-| SMS + email | Alerts at every booking step for tourist, operator and admin. There is also an admin **SMS centre** for single messages and broadcasts |
-| Analytics | Admin: views per park, top scenes, popular interests, bookings per park, status, 12-month trends, revenue, CSV export for Excel/SPSS. Operator: enquiries, revenue, package views |
-| User management | Roles: **admin (UWA)**, **tourist**, **tour operator**. Operators must be verified by the admin before tourists can see them |
+---
 
-## Quick start (Windows + XAMPP), the easy way
+## The six modules (supervisor's reference architecture)
 
-1. Start **MySQL** (and Apache) in the XAMPP Control Panel.
-2. Unzip the project to a new folder.
-3. **Double-click `setup.bat`.** It:
-   - creates or repairs `.env` (it even fixes a file Notepad saved as `.env.txt`)
-   - switches to local mode and generates the app key
-   - creates the `pearl360` MySQL database
-   - creates the tables and loads the demo data
-   - starts the site and opens http://localhost:8000
+| # | Module | URL | What it does |
+|---|---|---|---|
+| 1 | **Smart Itinerary** *(primary target)* | `/itinerary` | Builds a personalised, timed, multi-day schedule. It scores every activity against the visitor's interests, fitness, season and budget, then places the activities into dawn/morning/afternoon/evening/night slots. It handles travel days, Paraa ferry crossings, overnight stays, tips, the packing list and the reasons for each choice. Plans can be saved, printed, **booked and paid**. |
+| 2 | **Travel Budgeting** | `/budget` | UWA tiered pricing: **Foreign Non-Resident (USD)**, **Foreign Resident (USD)** and **East African Citizen (UGX)**. Covers park entry, activity permits, accommodation tiers, meals, transport (4x4 hire or self-drive fuel), vehicle entry, the ferry and a 10% contingency. |
+| 3 | **Smart Navigation** | `/navigate` | Leaflet map of Kichumbanyobo, Bugungu, Tangi, Chobe and Wankwar gates, Paraa Jetty, Baker's Trail, Pakuba Airfield and the attractions. A route planner gives distance and travel time and adds the ferry when you cross the Nile. Also shows your GPS position. |
+| 4 | **AI Travel Assistant** | `/assistant` | Answers questions on weather, seasons, packing, UWA rules, fees, gates and the ferry. It recommends itineraries for a given budget and number of days by running the real itinerary engine. Uses Claude when `ANTHROPIC_API_KEY` is set and an offline knowledge base otherwise. Every question is logged. |
+| 5 | **Travel Updates** | `/updates` | Live-editable alerts: Paraa ferry schedule, road and gate status, weather advisories and UWA conservation notices. Alerts have a severity, can be pinned and have validity dates. Includes a 7-day Open-Meteo forecast for Paraa. |
+| 6 | **Virtual Exploration** *(secondary)* | `/explore` | A 360° viewer for each activity. Hotspots show a title, description and audio note, plus an **"Add to Smart Itinerary"** button. Activity photos and videos appear below the viewer. |
 
-   Keep the black window open while you use the site.
+### HP5 360° Media & Hotspot Studio (Admin → `/admin/studio`)
+1. Upload an **equirectangular** JPG exported from the **HP5 360 VR camera** (2:1, e.g. 5760×2880; 4096×2048 loads fastest). Choose the activity it belongs to.
+2. In the editor, **click anywhere in the panorama**. This captures the pitch and yaw. Then add a title, a description, a private field note, an **audio note** (mp3/m4a/wav) and the activity for the "Add to Smart Itinerary" button.
+3. Edit or delete hotspots and scenes at any time. You can also hide a scene, replace its image, or set its starting view.
+4. Upload standard photos, MP4 videos or YouTube links per activity under **Park profile & gallery → Photos & videos**.
 
-Something not working? Run **`php artisan pearl360:doctor`** in the project folder. It checks PHP, extensions, `.env`, the app key, MySQL and folder permissions, and tells you exactly what to fix. `php artisan pearl360:doctor --fix` repairs what it can.
+## Three portals (role switching)
 
-### Manual setup (any OS)
+| Role | Login (password `Pearl360@2026`) | Portal |
+|---|---|---|
+| **Admin & MUBS Researcher** | `2400725284@mubs.ac.ug` | `/admin`: HP5 360° studio, activities & UWA prices, map places, travel updates, itineraries, bookings, payments, **SMS & email logs + test sender**, AI assistant logs, operators, users, settings |
+| **Tour Operator** | `operator@pearl360.test` | `/operator`: Murchison safari packages (photo, **promo video upload or YouTube link**, available places and dates), incoming bookings, quotes and confirmations |
+| **Tourist** | `tourist@pearl360.test` | `/my`: Smart Itineraries, bookings, **online payment** (MTN MoMo, Airtel Money, Visa/Mastercard), budget, assistant, 360° previews |
 
+To switch role, use **Log out / switch role** in the user menu and log in with another account. Change the admin password after the first login.
+
+**Booking flow:** Generate itinerary → Save → *Book & pay* (choose an operator) → pay with MoMo/Airtel/card (simulator) → **instant email + SMS** to the tourist, the operator and the admin contact (`2400725284@mubs.ac.ug`, `+256741141433`). Every message is stored and visible under **Admin → SMS & email logs**.
+
+---
+
+## Run it locally
+
+### Windows + XAMPP (easiest)
+1. Start **MySQL** in XAMPP.
+2. Double-click **`setup.bat`**. It creates `.env`, the app key and the database `murchison_smart_trip`, then migrates, seeds and starts the site at http://localhost:8000.
+
+### Any OS
 ```bash
-composer install              # skip if the vendor folder is already there
-cp .env.example .env          # Windows: copy .env.example .env
+composer install
+cp .env.example .env
 php artisan key:generate
-php artisan pearl360:doctor --fix
 php artisan migrate --seed
 php artisan serve
 ```
+To use SQLite instead of MySQL, set `DB_CONNECTION=sqlite` and `DB_DATABASE=database/database.sqlite` in `.env`, then run `touch database/database.sqlite`. If something fails, run `php artisan pearl360:doctor --fix`.
 
-### Demo accounts (password `Pearl360@2026`)
-
-| Role | Email |
-|---|---|
-| Administrator (UWA) | `2400725284@mubs.ac.ug` |
-| Second administrator | `uwa.officer@pearl360.test` |
-| Tourist | `tourist@pearl360.test` |
-| Tour operator (approved) | `operator@pearl360.test` (also `nile@…`, `peaks@…`) |
-| Tour operator (waiting for approval) | `newoperator@pearl360.test` |
-
-> **Change the admin password** after the first login (Account settings). Set `SEED_DEMO_DATA=false` in `.env` to skip the fake bookings, reviews and views.
-
-To re-install from scratch: `php artisan migrate:fresh --seed`.
-
-## Updating an existing installation (keeps your data)
-
-If you already installed an earlier version, pull or unzip the new code over it, then run:
-
-```bash
-composer install
-php artisan migrate                              # adds operator approval + login tracking tables
-php artisan db:seed --class=ParkVideoSeeder      # adds the real park videos (safe: deletes nothing)
-php artisan view:clear
+### Optional: turn on generative AI answers
+```env
+ANTHROPIC_API_KEY=your-key
+ANTHROPIC_MODEL=claude-opus-5-5
 ```
+Without a key, the assistant still works from its built-in knowledge base. If the AI is unavailable or declines a question, the knowledge base answers instead.
 
-## Accounts, operator approval and administrators
-
-- **Registration and login are saved in the database.** Accounts live in the `users` table. Passwords are stored only as secure **bcrypt hashes**, never as plain text, so nobody (not even an admin) can read them. Every registration, login, failed login, logout and password reset is written to `login_activities`, together with the time, IP address and browser. Admins see it under **Admin → Login activity**, and each user sees their own recent sign-ins under **Account settings**.
-- **Browsers can save passwords** (the forms use the standard `autocomplete` fields). **"Keep me logged in"** is on by default.
-- **Forgot password:** the login page has a *Forgot password?* link that emails a reset link. If email is not set up yet (`MAIL_MAILER=log`), the link is written to `storage/logs/laravel.log`, or an admin can set a new password with the 🔑 button on **Admin → Users & admins**.
-- **Tour operator approval:** anyone can register as a *tourist* or a *tour operator*. A new operator account is created as **Pending approval** and appears straight away:
-  - in the **Operators awaiting approval** panel at the top of the admin dashboard, with **Approve** / **Reject** buttons
-  - as a red count on the 🔔 bell in the navbar and next to *Tour operators* in the sidebar
-  - under **Admin → Tour operators → Pending**
-
-  Every admin also gets an SMS and email. The operator is told by SMS and email when they are approved or rejected (with the reason). Their packages appear to tourists only after approval.
-- **Testing sign-up while logged in?** If you are already logged in (for example as admin) and open *Register*, you are sent back to your dashboard with a message. Log out first, or use a private/incognito window, to register a new account.
-- **More than one admin:** on **Admin → Users & admins**, change anyone's role to **Admin**, or use **Add user / admin**. You can also do it from the command line:
-  ```bash
-  php artisan pearl360:make-admin jane@uwa.go.ug --name="Jane Namuli" --phone=0772123456
-  ```
-  The last remaining admin cannot be demoted, suspended or deleted, and you cannot remove your own admin rights.
-
-## Park videos
-
-Each park has a real YouTube video on its page, plus a second one in its **Videos** section; the home page also shows a few. Videos load only when clicked, so pages stay fast on mobile data, and every video has a *Watch on YouTube* link in case the uploader blocks embedding. To change them, go to **Admin → Parks → Photos & videos**: paste any YouTube link or upload an MP4. The starting list is in `database/seeders/ParkVideoSeeder.php`.
-
-## Adding your own photos, videos and 360° images
-
-The seeder draws **placeholder** landscapes (in `public/uploads/seed/`) so everything works on day one. Replace them from the admin panel:
-
-| What | Where | Tips |
-|---|---|---|
-| Park cover photo | Admin → Parks → *Edit* → Cover photo | Landscape, ~1600×900, under 500 KB |
-| Gallery photos (many at once) | Admin → Parks → **Photos & videos** | Tick "Use as cover photo" on any image |
-| Videos | Same page: upload MP4 (≤100 MB) **or** paste a YouTube link | For big files, raise `upload_max_filesize` / `post_max_size` in `php.ini` |
-| Feature video on the park page | Admin → Parks → *Edit* → Feature video | |
-| 360° panoramas | Admin → Parks → **360° scenes** → Upload | Must be **equirectangular** (width = 2 × height). Use an Insta360 / Ricoh Theta, or a phone app such as Google Street View. 4096×2048 JPG is ideal |
-| Hotspots | Open a scene → **click in the panorama** to capture pitch/yaw → choose "Link to scene" or "Information point" | |
-| New park / wildlife reserve | Admin → Parks → Add park → **click the map** to place the pin | |
-| **Site logo** | Admin → Settings → Logo, **or** put your file in `public/images` named `logo.png` (or `logo.jpg` / `logo.webp`) | PNG, JPG or WebP (SVG uploads are refused for security), about 256×256 px. Do not rename a PNG to `logo.svg`. Untick "Show the name Pearl360" if your logo already contains the name. "Remove my logo" goes back to the default. Used in the navbar, footer, browser tab and payment page |
-| Home page hero image, contacts, USD rate | Admin → Settings | |
-
-All uploads are saved to `public/uploads/…`, so they work on shared hosting without `storage:link`.
-
-## Going live: payments, SMS, email
-
-All three work out of the box in **demo mode**: payments use the simulator, SMS are written to the SMS centre log, and emails go to `storage/logs/laravel.log`. To switch on the real services, edit `.env`:
-
-**Mobile Money & cards (Flutterwave)**
-1. Create a business account at https://flutterwave.com (Uganda) and copy your API keys.
-2. Set:
-   ```
-   PAYMENT_DRIVER=flutterwave
-   FLUTTERWAVE_PUBLIC_KEY=FLWPUBK-...
-   FLUTTERWAVE_SECRET_KEY=FLWSECK-...
-   FLUTTERWAVE_SECRET_HASH=any-long-random-string
-   ```
-3. In the Flutterwave dashboard, set the webhook URL to `https://your-domain/payments/webhook` and use the same secret hash.
-
-**SMS (Africa's Talking)**
-```
-SMS_DRIVER=africastalking
-AT_USERNAME=your_username      # "sandbox" while testing
-AT_API_KEY=your_api_key
-AT_SANDBOX=false               # true while testing on the AT simulator
-AT_SENDER_ID=                  # optional, once approved
-```
-
-**Email (Gmail example)**
-```
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=youraccount@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_SCHEME=tls
-MAIL_FROM_ADDRESS=youraccount@gmail.com
-```
-
-Admin alerts go to `ADMIN_EMAIL` / `ADMIN_PHONE`, which default to `2400725284@mubs.ac.ug` / `256741141433`. You can change them later in Admin → Settings.
-
-After editing `.env` on a live server, run `php artisan config:clear`.
-
-## Tests
-
+### Run the tests
 ```bash
 php artisan test
 ```
+There are 40 tests, including `tests/Feature/SmartTripModulesTest.php`. It covers the itinerary engine, UWA tier maths, routes and ferry detection, the assistant, travel updates, hotspots, "add to itinerary", and the full save → book → MoMo payment → email/SMS flow.
 
-24 tests (in `tests/Feature` and `tests/Unit`) cover operator registration → admin approval/rejection, login records, password reset, multiple admins, park videos, every page for every role, access control, operator registration, the trip planner's rankings, and the full **enquiry → quote → Mobile Money payment → confirmation** flow including SMS alerts, plus Ugandan phone-number formatting and YouTube link handling.
+---
 
-## Project structure (the Laravel files we use)
+## Deploying
 
-```
-app/
-├── helpers.php                         media_url(), ugx(), usd_to_ugx(), setting(), youtube_embed()
-├── Http/
-│   ├── Middleware/EnsureRole.php       role-based access (admin / tourist / operator)
-│   └── Controllers/
-│       ├── Controller.php              shared upload helper (saves to public/uploads)
-│       ├── HomeController.php          home, map, about, contact
-│       ├── ParkController.php          park list / filters, park page, compare
-│       ├── TourController.php          360° viewer + scene-view logging
-│       ├── TripPlannerController.php   planner form & results
-│       ├── PackageController.php       public safari packages & operator pages
-│       ├── AuthController.php          register (tourist/operator), login, profile
-│       ├── PaymentController.php       checkout, simulator, Flutterwave callback & webhook
-│       ├── Tourist/                    Dashboard (favourites, plans), Booking, Review
-│       ├── Operator/                   Dashboard, Profile, Package (CRUD), Booking (quote/confirm)
-│       └── Admin/                      Dashboard (+CSV), Park, Activity, Media, Scene (+hotspots),
-│                                       Operator (verify), User, Booking/Payments, Review, Sms, Setting
-├── Mail/SystemNotification.php         one branded email template for all notifications
-├── Models/                             User, Park, Activity, Scene, Hotspot, ParkMedia, Operator,
-│                                       TourPackage, Booking, Payment, Review, TripPlan, ViewLog,
-│                                       SmsLog, Setting, ContactMessage
-└── Services/
-    ├── RecommendationService.php       the knowledge-based recommender (scoring rules)
-    ├── NotificationService.php         every email + SMS in one place
-    ├── Payments/                       PaymentGateway interface, PaymentService,
-    │                                   FlutterwaveGateway, SimulatedGateway
-    ├── Sms/SmsService.php              Africa's Talking / log driver, phone normalisation
-    └── PlaceholderImageGenerator.php   draws placeholder panoramas & photos (PHP GD)
-bootstrap/app.php                       middleware alias, CSRF exception for the payment webhook
-config/pearl360.php                     project settings (admin contacts, payments, SMS)
-database/
-├── migrations/2026_01_01_*             users(role), parks, activities, scenes+hotspots, park_media,
-│                                       operators+packages, bookings+payments, reviews, favourites,
-│                                       trip_plans, view_logs, sms_logs, settings, contact_messages
-├── seeders/                            ParkSeeder (10 parks), UserSeeder, SettingSeeder, DemoDataSeeder
-└── factories/UserFactory.php
-resources/views/                        Blade templates: layouts/, partials/, parks/, tour/, planner/,
-                                        packages/, auth/, payments/, tourist/, operator/, admin/, emails/
-routes/web.php                          all routes, grouped by role
-public/css/pearl360.css                 the Pearl360 theme (change colours in :root)
-public/js/pearl360.js                   small shared helpers
-public/vendor/                          Bootstrap, Bootstrap Icons, Leaflet, Pannellum, Chart.js
-                                        (served locally, so the demo works without internet except map tiles)
-tests/Feature/, tests/Unit/             PagesTest, BookingFlowTest, TripPlannerTest, AccountsTest, HelpersTest
-```
+### Option A – Vercel (PHP runtime)
+The repo includes `vercel.json` and `api/index.php` for the community **vercel-php** runtime.
 
-### Database entities (proposal Table 3.3, extended)
+1. Push the repo to GitHub and import it at **vercel.com → New Project**. Framework preset: **Other**.
+2. Under **Settings → Environment Variables**, add:
+   - `APP_KEY` (from `php artisan key:generate --show`) and `APP_URL`
+   - an external database (for example a hosted MySQL): `DB_CONNECTION=mysql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+   - optionally `ANTHROPIC_API_KEY`
+3. Deploy. Then run `php artisan migrate --seed` once **from your own computer** against the same database (put the production `DB_*` values in your local `.env` temporarily).
 
-`users` · `parks` · `activities` · `scenes` · `hotspots` · `park_media` · `operators` · `operator_park` · `tour_packages` · `bookings` · `payments` · `reviews` · `favourites` · `trip_plans` · `view_logs` · `sms_logs` · `settings` · `contact_messages`
+> Vercel functions are serverless, so the filesystem is read-only and temporary. Seeded images work, but **files you upload later (HP5 panoramas, audio, videos) are not kept**. For field research with uploads, use Option B, or move uploads to S3-compatible storage. Sessions use cookies and the cache uses memory on Vercel.
 
-## Notes for the research report
+### Option B – Railway / Render / cPanel shared hosting (recommended for uploads)
+- **Railway or Render:** create a PHP/Laravel service plus a MySQL database, set the same environment variables, use `php artisan migrate --force --seed && php artisan serve --host 0.0.0.0 --port $PORT` as the start command, and attach a persistent volume to `public/uploads`.
+- **cPanel:** upload the project, point the domain's document root to `public/`, create a MySQL database, edit `.env`, then run `php artisan migrate --seed` (through the Terminal, or *Setup PHP App*).
 
-- Park costs are **indicative** foreign non-resident USD rates (e.g. gorilla permit $800, Kibale chimp tracking $250). Verify them against the current UWA tariff before publishing.
-- Section 1.6 of the proposal says the system "will not process online payments". This implementation **adds** online payments and SMS, so update the scope section to match.
-- The recommender is knowledge-based, as the proposal justifies (Ricci et al., 2015), because the system starts without historical user data.
+### Real payments, SMS and email
+- `PAYMENT_DRIVER=flutterwave` with `FLUTTERWAVE_PUBLIC_KEY`, `FLUTTERWAVE_SECRET_KEY` and `FLUTTERWAVE_SECRET_HASH`
+- `SMS_DRIVER=africastalking` with `AT_USERNAME` and `AT_API_KEY`
+- `MAIL_MAILER=smtp` plus your SMTP settings
 
-## Deployment (shared hosting / cPanel)
+The simulator and log drivers are the defaults, which suits demos and the project defence.
 
-1. Upload the project and point the domain's document root to the `public/` folder.
-2. Create a MySQL database and put its details in `.env`, with `APP_ENV=production` and `APP_DEBUG=false`.
-3. Run `composer install --no-dev --optimize-autoloader`, `php artisan key:generate`, `php artisan migrate --seed --force` and `php artisan config:cache`.
-4. Make `storage/`, `bootstrap/cache/` and `public/uploads/` writable.
+---
 
-## Troubleshooting
+## Where things live
 
-- **"Your PHP version does not satisfy…" / Symfony needs 8.4:** you are probably running `composer update` or an old download. Run `composer install` (not update). It uses `composer.lock`, which is pinned to PHP 8.2.12 through `config.platform.php`.
-- **"Call to undefined function imagecreatetruecolor":** fixed. The placeholder images now ship with the project in `public/uploads/seed`, so GD is not needed to seed. Enabling `extension=gd` in `php.ini` is still recommended for image uploads.
-- **Blank "500 Server Error" page:** usually `.env` is missing or `APP_KEY` is empty. The site now shows a setup page explaining this. Run `setup.bat` or `php artisan pearl360:doctor --fix`.
-- **"APPLICATION IN PRODUCTION. Are you sure…?":** your `.env` is missing `APP_ENV=local` (or says `production`). Open `.env`, set `APP_ENV=local` and `APP_DEBUG=true`, then run `php artisan config:clear`.
-- **SQLSTATE connection refused:** start MySQL in the XAMPP control panel and check the `DB_*` values in `.env`.
+| Path | Purpose |
+|---|---|
+| `app/Services/Murchison/ItineraryEngine.php` | Smart Itinerary algorithm (score → place in day/slot grid → schedule → budget → explain) |
+| `app/Services/Murchison/BudgetCalculator.php` | UWA three-tier budget |
+| `app/Services/Murchison/RouteService.php` | Haversine distance, road factor, travel time, ferry rule |
+| `app/Services/Murchison/TravelAssistant.php` | Claude + knowledge-base assistant, grounded in live database facts |
+| `config/murchison.php` | Park entry fees, accommodation tiers, transport, origins, seasons, interests |
+| `database/seeders/ParkSeeder.php` | Murchison Falls park, map places, the 7 activities with UWA prices, placeholder 360° scenes |
+| `app/Http/Controllers/Smart/*` | Public module controllers |
+| `app/Http/Controllers/Admin/{SceneController,TravelUpdateController,PlaceController,UwaActivityController,NotificationLogController}.php` | Researcher CMS |
+| `docs/screenshots/` | Implementation screenshots for Chapter 4 of the report |
+| `docs/MUBS_Proposal_Murchison_Smart_Trip_Planning.docx` | First draft of the project proposal in the MUBS format |
+| `murchison-smart-tourism/` | Earlier Next.js prototype, kept for reference |
+
+Fees are **indicative UWA planning figures**: confirm current tariffs with the Uganda Wildlife Authority and update them under **Admin → Activities & UWA prices**. Map coordinates are approximate and meant for orientation, not navigation.

@@ -20,10 +20,19 @@ class PagesTest extends TestCase
         $this->seed(DatabaseSeeder::class);
     }
 
-    public function test_all_ten_parks_are_seeded_with_tours(): void
+    public function test_only_murchison_falls_is_seeded_with_the_research_activities(): void
     {
-        $this->assertSame(10, Park::count());
-        Park::all()->each(fn ($p) => $this->assertGreaterThanOrEqual(3, $p->scenes()->count(), $p->name));
+        $this->assertSame(1, Park::count());
+        $park = Park::first();
+        $this->assertSame('murchison-falls-national-park', $park->slug);
+        foreach (['victoria-nile-boat-cruise', 'north-bank-game-drive', 'hike-to-the-top-of-the-falls', 'budongo-chimpanzee-trekking',
+            'albert-delta-shoebill-birding', 'sport-fishing', 'night-game-drive'] as $slug) {
+            $a = \App\Models\Activity::where('slug', $slug)->firstOrFail();
+            $this->assertGreaterThanOrEqual(1, $a->scenes()->count(), $slug);
+        }
+        foreach (['kichumbanyobo-gate', 'bugungu-gate', 'tangi-gate', 'chobe-gate', 'wankwar-gate', 'paraa-jetty', 'bakers-trail', 'pakuba-airfield'] as $slug) {
+            $this->assertTrue(\App\Models\Place::where('slug', $slug)->exists(), $slug);
+        }
     }
 
     public function test_public_pages_load(): void
@@ -31,10 +40,13 @@ class PagesTest extends TestCase
         $park = Park::first();
         $package = \App\Models\TourPackage::first();
 
-        foreach (['/', '/map', '/about', '/contact', '/parks', '/parks?interest=gorillas&sort=cost', '/parks/compare',
-            "/parks/{$park->slug}", "/parks/{$park->slug}/tour", '/planner', '/packages',
+        foreach (['/', '/about', '/contact', '/park', "/parks/{$park->slug}", '/itinerary', '/budget', '/budget?category=eac&days=2&activities[]=sport-fishing',
+            '/navigate', '/assistant', '/updates', '/explore', '/explore?activity=night-game-drive', '/packages',
             "/packages/{$package->slug}", "/operators/{$package->operator->slug}", '/login', '/register'] as $url) {
             $this->get($url)->assertOk();
+        }
+        foreach (['/parks', '/map', '/planner', "/parks/{$park->slug}/tour"] as $url) {
+            $this->get($url)->assertRedirect();
         }
     }
 
@@ -57,7 +69,8 @@ class PagesTest extends TestCase
         $scene = $park->scenes()->first();
 
         foreach (['/admin', '/admin/parks', '/admin/parks/create', "/admin/parks/{$park->slug}/edit", "/admin/parks/{$park->slug}/media",
-            "/admin/parks/{$park->slug}/scenes", "/admin/scenes/{$scene->id}/edit", '/admin/operators', '/admin/users', '/admin/users/create',
+            "/admin/scenes/{$scene->id}/edit", '/admin/studio', '/admin/uwa-activities', '/admin/places', '/admin/places/create',
+            '/admin/travel-updates', '/admin/travel-updates/create', '/admin/notifications', '/admin/assistant-logs', '/admin/itineraries', '/admin/operators', '/admin/users', '/admin/users/create',
             '/admin/bookings', '/admin/payments', '/admin/reviews', '/admin/sms', '/admin/messages', '/admin/settings', '/admin/reports/export', '/profile'] as $url) {
             $this->actingAs($admin)->get($url)->assertOk();
         }
@@ -69,7 +82,7 @@ class PagesTest extends TestCase
         }
 
         $tourist = User::where('email', 'tourist@pearl360.test')->first();
-        foreach (['/my', '/my/bookings', '/my/bookings/new', "/my/bookings/new?park={$park->slug}"] as $url) {
+        foreach (['/my', '/my/bookings', '/my/bookings/new', "/my/bookings/new?park={$park->slug}", '/itinerary'] as $url) {
             $this->actingAs($tourist)->get($url)->assertOk();
         }
     }

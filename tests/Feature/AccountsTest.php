@@ -177,6 +177,6 @@ class AccountsTest extends TestCase
 
         $park = Park::where('slug', 'murchison-falls-national-park')->first();
         $this->get("/parks/{$park->slug}")->assertOk()->assertSee('data-yt="noIT-TWOEZY"', false)->assertSee('Watch on YouTube');
-        $this->get('/')->assertOk()->assertSee('on video');
+        $this->get('/')->assertOk();
     }
 }

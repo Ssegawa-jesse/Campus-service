@@ -21,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
+
         // Admins see a live count of operators waiting for approval in the navbar and sidebar.
         View::composer(['partials.nav', 'partials.sidebar'], function ($view) {
             $user = auth()->user();

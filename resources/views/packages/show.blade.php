@@ -13,13 +13,20 @@
                 <h5 class="mt-4">What's included</h5>
                 <ul>@foreach (preg_split('/\r?\n/', $package->includes) as $line)@if (trim($line))<li>{{ $line }}</li>@endif @endforeach</ul>
             @endif
-            <a href="{{ route('tour.show', $package->park) }}" class="btn btn-outline-forest mt-2"><i class="bi bi-badge-vr"></i> Preview {{ $package->park->name }} in 360°</a>
+            @if ($package->video_url)
+                <h5 class="mt-4">Promotional video</h5>
+                @if (youtube_embed($package->video_url))<div class="ratio ratio-16x9 rounded overflow-hidden"><iframe src="{{ youtube_embed($package->video_url) }}" title="Video" allowfullscreen loading="lazy"></iframe></div>
+                @else<video src="{{ media_url($package->video_url) }}" controls class="w-100 rounded" preload="metadata"></video>@endif
+            @endif
+            <a href="{{ route('explore') }}" class="btn btn-outline-forest mt-3"><i class="bi bi-badge-vr"></i> Preview {{ $package->park->name }} in 360°</a>
         </div>
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm sticky-top" style="top:90px">
                 <div class="card-body">
                     <div class="fs-3 fw-bold text-forest">{{ ugx($package->price_ugx) }}</div>
-                    <div class="small text-muted mb-3">per person · {{ $package->days }} days · max {{ $package->max_group }} people</div>
+                    <div class="small text-muted mb-3">per person · {{ $package->days }} days · max {{ $package->max_group }} people<br>
+                        <span class="{{ $package->slots_available > 0 ? 'text-success' : 'text-danger' }}"><i class="bi bi-people"></i> {{ $package->slots_available > 0 ? $package->slots_available.' places available' : 'Fully booked' }}</span>
+                        @if ($package->available_from || $package->available_to) · {{ $package->available_from?->format('j M Y') ?? 'now' }} – {{ $package->available_to?->format('j M Y') ?? 'open' }}@endif</div>
                     @auth
                         @if (auth()->user()->isTourist())
                             <a href="{{ route('tourist.bookings.create', ['package' => $package->slug]) }}" class="btn btn-gold w-100 btn-lg">Request to book</a>

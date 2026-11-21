@@ -1,153 +1,107 @@
 @extends('layouts.app')
-@section('title', 'Explore Uganda\'s National Parks in 360°')
-@section('no_flash', true)
+@section('title', 'Smart Trip Planning for Murchison Falls')
 
 @section('content')
-@php $heroImg = setting('hero_image') ? media_url(setting('hero_image')) : ($parks->firstWhere('slug', 'murchison-falls-national-park')?->coverUrl() ?? asset('images/placeholder-park.svg')); @endphp
-<section class="hero" style="background-image:url('{{ $heroImg }}')">
+<section class="hero position-relative text-white" style="background: linear-gradient(rgba(10,30,20,.55), rgba(10,30,20,.75)), url('{{ $park?->coverUrl() }}') center/cover;">
     <div class="container-xl py-5">
-        <div class="row align-items-center">
+        <div class="row align-items-center py-lg-5">
             <div class="col-lg-7">
-                <span class="hero-badge mb-3"><i class="bi bi-badge-vr"></i> Virtual safari · {{ $stats['parks'] }} parks · {{ $stats['scenes'] }} 360° scenes</span>
-                <h1 class="mb-3">See the Pearl of Africa <span class="text-gold">before you go.</span></h1>
-                <p class="lead mb-4">{{ setting('site_tagline', 'Take immersive 360° tours of Uganda\'s national parks, get a trip plan matched to your interests, fitness and budget, then book trusted operators and pay with Mobile Money.') }}</p>
-                <form action="{{ route('parks.index') }}" class="hero-search d-flex gap-2 mb-4">
-                    <i class="bi bi-search text-muted align-self-center ms-2"></i>
-                    <input name="q" class="form-control" placeholder="Search gorillas, waterfalls, Kidepo…">
-                    <button class="btn btn-forest px-4">Search</button>
-                </form>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('planner.index') }}" class="btn btn-gold btn-lg"><i class="bi bi-magic me-1"></i> Plan my trip</a>
-                    <a href="{{ route('map') }}" class="btn btn-outline-light btn-lg"><i class="bi bi-map me-1"></i> Explore the map</a>
+                <div class="section-kicker text-gold">Murchison Falls National Park · Uganda</div>
+                <h1 class="display-5 fw-bold">Plan your Murchison Falls trip in minutes — with AI.</h1>
+                <p class="lead text-white">A personalised day-by-day itinerary, UWA-priced budget, park map with travel times, a travel assistant, live alerts, and 360° previews of every activity.</p>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="{{ route('itinerary.index') }}" class="btn btn-gold btn-lg"><i class="bi bi-calendar2-week me-1"></i> Build my Smart Itinerary</a>
+                    <a href="{{ route('assistant') }}" class="btn btn-outline-light btn-lg"><i class="bi bi-robot me-1"></i> Ask the assistant</a>
+                </div>
+            </div>
+            <div class="col-lg-5 mt-4 mt-lg-0">
+                <div class="card border-0 shadow text-dark">
+                    <div class="card-body">
+                        <h6 class="mb-2"><i class="bi bi-broadcast text-danger"></i> Live travel updates</h6>
+                        @forelse ($updates as $u)
+                            <div class="alert alert-{{ $u->color() }} py-2 px-3 small mb-2"><i class="bi bi-{{ $u->icon() }} me-1"></i><strong>{{ $u->title }}</strong><div>{{ Str::limit($u->body, 110) }}</div></div>
+                        @empty
+                            <p class="small text-muted mb-0">No alerts right now.</p>
+                        @endforelse
+                        <a href="{{ route('updates') }}" class="small">All updates & weather →</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<div class="container-xl stat-strip">
+<section class="container-xl py-5">
+    <div class="text-center mb-4">
+        <div class="section-kicker">System architecture</div>
+        <h2 class="fw-bold">Smart Trip Planning – six modules</h2>
+        <p class="text-muted">Smart Itinerary is the core. The other five modules feed it.</p>
+    </div>
     <div class="row g-3">
-        @foreach ([['parks', 'National parks', 'tree'], ['scenes', '360° scenes', 'badge-vr'], ['operators', 'Verified operators', 'patch-check'], ['trips', 'Trips booked', 'suitcase2']] as [$k, $label, $icon])
-            <div class="col-6 col-md-3"><div class="stat-card"><i class="bi bi-{{ $icon }} text-gold fs-4"></i><div class="num">{{ number_format($stats[$k]) }}</div><div class="small text-muted">{{ $label }}</div></div></div>
+        @foreach ([
+            ['itinerary.index', 'calendar2-week', 'Smart Itinerary', 'Primary module: a personalised multi-day schedule of boat cruises, game drives, hikes, chimps, shoebills, fishing and night drives.', 'bg-warning-subtle text-warning-emphasis', true],
+            ['budget', 'calculator', 'Travel Budgeting', 'UWA tiered pricing for Foreign Non-Residents and Residents (USD) and East African Citizens (UGX).', 'bg-success-subtle text-success', false],
+            ['navigate', 'map', 'Smart Navigation', 'Working map of the gates, Paraa Jetty, Baker\'s Trail, Pakuba Airfield and attractions, with distances and times.', 'bg-primary-subtle text-primary', false],
+            ['assistant', 'robot', 'AI Travel Assistant', 'Ask about weather, seasons, packing, UWA rules, or say "plan 3 days for $1,000".', 'bg-info-subtle text-info-emphasis', false],
+            ['updates', 'broadcast', 'Travel Updates', 'Paraa ferry schedules, road and gate status, weather advisories and UWA conservation notices.', 'bg-danger-subtle text-danger', false],
+            ['explore', 'badge-vr', 'Virtual Exploration', '360° previews from an HP5 camera, with hotspots that add activities to your itinerary.', 'bg-secondary-subtle text-secondary-emphasis', false],
+        ] as $i => [$r, $icon, $title, $text, $tone, $primary])
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ route($r) }}" class="card module-card shadow-sm text-decoration-none text-reset {{ $primary ? 'module-primary' : '' }}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="module-icon {{ $tone }}"><i class="bi bi-{{ $icon }}"></i></div>
+                            <div><div class="small text-muted">Module {{ $i + 1 }}{{ $primary ? ' · primary target' : '' }}</div><h5 class="mb-0">{{ $title }}</h5></div>
+                        </div>
+                        <p class="small text-muted mb-0">{{ $text }}</p>
+                    </div>
+                </a>
+            </div>
         @endforeach
     </div>
-</div>
-
-<div class="container-xl">@include('partials.flash')</div>
-
-<section class="container-xl py-5">
-    <div class="d-flex justify-content-between align-items-end mb-4">
-        <div><div class="section-kicker">Most explored</div><h2 class="section-title mb-0">Popular parks right now</h2></div>
-        <a href="{{ route('parks.index') }}" class="btn btn-outline-forest">All {{ $parks->count() }} parks <i class="bi bi-arrow-right"></i></a>
-    </div>
-    <div class="row g-4">
-        @foreach ($featured as $park)
-            <div class="col-sm-6 col-lg-4">@include('partials.park-card')</div>
+    <div class="row g-3 text-center mt-4">
+        @foreach (['activities' => 'Park activities', 'places' => 'Mapped places & gates', 'scenes' => 'HP5 360° scenes', 'itineraries' => 'Itineraries generated'] as $k => $l)
+            <div class="col-6 col-md-3"><div class="p-3 bg-white rounded-4 shadow-sm"><div class="fs-2 fw-bold text-forest">{{ number_format($stats[$k]) }}</div><div class="small text-muted">{{ $l }}</div></div></div>
         @endforeach
     </div>
 </section>
 
 <section class="bg-white py-5">
     <div class="container-xl">
-        <div class="text-center mb-5"><div class="section-kicker">How it works</div><h2 class="section-title">From dreaming to booking in four steps</h2></div>
-        <div class="row g-4 text-center">
-            @foreach ([
-                ['badge-vr', 'Take a 360° tour', 'Look around gorilla trails, waterfalls and savannah from your phone or laptop – even with a VR headset.'],
-                ['magic', 'Get matched', 'Answer 5 quick questions. Our smart planner ranks every park for your interests, fitness, budget and travel month.'],
-                ['chat-square-text', 'Enquire & get a quote', 'Send one enquiry to a verified tour operator and receive a quote by SMS and email.'],
-                ['phone', 'Pay with Mobile Money', 'Pay securely with MTN MoMo, Airtel Money or card and get instant SMS confirmation.'],
-            ] as $i => [$icon, $title, $text])
-                <div class="col-md-3">
-                    <div class="d-inline-grid bg-forest-light rounded-4 p-3 mb-3" style="place-items:center"><i class="bi bi-{{ $icon }} fs-2 text-forest"></i></div>
-                    <h5>{{ $i + 1 }}. {{ $title }}</h5>
-                    <p class="text-muted small">{{ $text }}</p>
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <div><div class="section-kicker">Murchison Falls activities</div><h2 class="fw-bold mb-0">What you can do</h2></div>
+            <a href="{{ route('budget') }}" class="btn btn-outline-forest">UWA prices <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3">
+            @foreach ($activities as $a)
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <span class="badge bg-forest-light text-forest align-self-start mb-2">{{ \App\Models\Activity::CATEGORIES[$a->category] ?? $a->category }} · {{ $a->place?->name }}</span>
+                            <h6>{{ $a->name }}</h6>
+                            <p class="small text-muted flex-grow-1">{{ $a->description }}</p>
+                            <div class="small mb-2"><strong>{{ $a->priceLabel('fnr') }}</strong> FNR · {{ $a->priceLabel('fr') }} FR · {{ $a->priceLabel('eac') }} EAC</div>
+                            <div class="d-flex gap-2">
+                                <form method="POST" action="{{ route('itinerary.add', $a) }}">@csrf<button class="btn btn-sm btn-gold"><i class="bi bi-calendar-plus"></i> Add to itinerary</button></form>
+                                <a href="{{ route('explore', ['activity' => $a->slug]) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-badge-vr"></i> 360°</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endforeach
         </div>
     </div>
 </section>
-
-<section class="container-xl py-5">
-    <div class="row g-4 align-items-center">
-        <div class="col-lg-5">
-            <div class="section-kicker">Beyond the famous few</div>
-            <h2 class="section-title">Hidden gems waiting to be explored</h2>
-            <p class="text-muted">Most visitors only hear about gorilla trekking. These parks offer unique experiences with far fewer crowds – take a virtual look and see what you're missing.</p>
-            <a href="{{ route('parks.compare') }}" class="btn btn-forest"><i class="bi bi-layout-split me-1"></i> Compare parks side by side</a>
-        </div>
-        <div class="col-lg-7">
-            <div class="row g-3">
-                @foreach ($hiddenGems as $park)
-                    <div class="col-md-4">
-                        <a href="{{ route('tour.show', $park) }}" class="card border-0 shadow-sm text-white overflow-hidden h-100" style="background:url('{{ $park->coverUrl() }}') center/cover;min-height:230px">
-                            <div class="card-body d-flex flex-column justify-content-end" style="background:linear-gradient(0deg,rgba(0,0,0,.75),transparent)">
-                                <span class="small text-gold"><i class="bi bi-badge-vr"></i> 360° tour</span>
-                                <h6 class="mb-0">{{ $park->name }}</h6>
-                            </div>
-                        </a>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-</section>
-
-@if ($videoParks->isNotEmpty())
-<section class="container-xl py-5">
-    <div class="d-flex justify-content-between align-items-end mb-4">
-        <div><div class="section-kicker">Watch before you go</div><h2 class="section-title mb-0">Uganda's parks on video</h2></div>
-        <a href="{{ route('parks.index') }}" class="btn btn-outline-forest">More parks</a>
-    </div>
-    <div class="row g-4">
-        @foreach ($videoParks as $park)
-            <div class="col-md-4">
-                @include('partials.youtube', ['url' => $park->video_url, 'title' => $park->name])
-            </div>
-        @endforeach
-    </div>
-</section>
-@endif
 
 @if ($packages->isNotEmpty())
-<section class="bg-white py-5">
-    <div class="container-xl">
-        <div class="d-flex justify-content-between align-items-end mb-4">
-            <div><div class="section-kicker">Book with confidence</div><h2 class="section-title mb-0">Safari packages from verified operators</h2></div>
-            <a href="{{ route('packages.index') }}" class="btn btn-outline-forest">All packages</a>
-        </div>
-        <div class="row g-4">
-            @foreach ($packages as $package)
-                <div class="col-md-6 col-lg-4">@include('packages._card')</div>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-@if ($reviews->isNotEmpty())
 <section class="container-xl py-5">
-    <div class="text-center mb-4"><div class="section-kicker">Travellers say</div><h2 class="section-title">Real experiences</h2></div>
-    <div class="row g-4">
-        @foreach ($reviews as $review)
-            <div class="col-md-4">
-                <div class="review-card">
-                    @include('partials.stars', ['rating' => $review->rating])
-                    <p class="mt-2 mb-3">"{{ $review->comment }}"</p>
-                    <div class="small"><strong>{{ $review->user->name }}</strong> · <a href="{{ route('parks.show', $review->park) }}">{{ $review->park->name }}</a></div>
-                </div>
-            </div>
-        @endforeach
+    <div class="d-flex justify-content-between align-items-end mb-3">
+        <div><div class="section-kicker">From verified tour operators</div><h2 class="fw-bold mb-0">Murchison Falls safari packages</h2></div>
+        <a href="{{ route('packages.index') }}" class="btn btn-outline-forest">All packages</a>
+    </div>
+    <div class="row g-3">
+        @foreach ($packages as $package)<div class="col-md-4">@include('packages._card')</div>@endforeach
     </div>
 </section>
 @endif
-
-<section class="container-xl pb-4">
-    <div class="cta-band p-4 p-md-5 d-md-flex justify-content-between align-items-center gap-4">
-        <div>
-            <h3 class="mb-2">Are you a tour operator or lodge?</h3>
-            <p class="mb-md-0 text-white-50">Receive enquiries from tourists who have already explored the parks virtually. Get paid online via Mobile Money.</p>
-        </div>
-        <a href="{{ route('register', ['as' => 'operator']) }}" class="btn btn-gold btn-lg flex-shrink-0">Join as an operator</a>
-    </div>
-</section>
 @endsection

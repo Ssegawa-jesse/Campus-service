@@ -12,7 +12,7 @@
     <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}" rel="stylesheet">
     @stack('styles')
-    <link href="{{ asset('css/pearl360.css') }}?v=1" rel="stylesheet">
+    <link href="{{ asset('css/pearl360.css') }}?v=2" rel="stylesheet">
 </head>
 <body class="@yield('body_class')">
     @include('partials.nav')

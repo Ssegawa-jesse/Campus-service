@@ -9,12 +9,12 @@ class TourPackage extends Model
 {
     protected $fillable = [
         'operator_id', 'park_id', 'title', 'slug', 'description', 'includes', 'days', 'price_ugx',
-        'max_group', 'image', 'is_active',
+        'max_group', 'image', 'is_active', 'slots_available', 'available_from', 'available_to', 'video_url',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'available_from' => 'date', 'available_to' => 'date'];
     }
 
     public function getRouteKeyName(): string

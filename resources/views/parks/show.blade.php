@@ -17,7 +17,7 @@
         <h1 class="display-5 fw-bold mb-1">{{ $park->name }}</h1>
         <p class="lead mb-3">{{ $park->tagline }}</p>
         <div class="d-flex flex-wrap gap-2">
-            <a href="{{ route('tour.show', $park) }}" class="btn btn-gold btn-lg"><i class="bi bi-badge-vr me-1"></i> Start 360° tour ({{ $park->scenes->count() }} scenes)</a>
+            <a href="{{ route('explore') }}" class="btn btn-gold btn-lg"><i class="bi bi-badge-vr me-1"></i> 360° previews ({{ $park->scenes->count() }} scenes)</a>
             @auth
                 @if (auth()->user()->isTourist())
                     <a href="{{ route('tourist.bookings.create', ['park' => $park->slug]) }}" class="btn btn-light btn-lg"><i class="bi bi-calendar-plus me-1"></i> Book / enquire</a>
@@ -68,13 +68,15 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <h6 class="mb-1">{{ $activity->name }}</h6>
-                                    <span class="text-forest fw-semibold small">${{ number_format($activity->indicative_cost) }}</span>
+                                    <span class="text-forest fw-semibold small text-nowrap">{{ $activity->priceLabel('fnr') }}</span>
                                 </div>
                                 <p class="small text-muted mb-2">{{ $activity->description }}</p>
                                 <div class="small d-flex gap-3 text-muted">
                                     <span><i class="bi bi-clock"></i> {{ $activity->duration }}</span>
                                     <span><i class="bi bi-heart-pulse"></i> {{ $activity->fitnessLabel() }} fitness</span>
                                 </div>
+                                <div class="small text-muted mt-1">FR {{ $activity->priceLabel('fr') }} · EAC {{ $activity->priceLabel('eac') }}</div>
+                                <form method="POST" action="{{ route('itinerary.add', $activity) }}" class="mt-2">@csrf<button class="btn btn-sm btn-gold"><i class="bi bi-calendar-plus"></i> Add to itinerary</button></form>
                             </div>
                         </div>
                     </div>
@@ -190,14 +192,12 @@
                 @endforeach
             @endif
 
-            <h5 class="mt-4">Nearby parks</h5>
-            @foreach ($nearby as $n)
-                <a href="{{ route('parks.show', $n) }}" class="d-flex gap-2 align-items-center mb-2 text-reset">
-                    <img src="{{ $n->coverUrl() }}" width="64" height="44" class="rounded object-fit-cover" alt="">
-                    <span class="small fw-semibold">{{ $n->name }}</span>
-                </a>
-            @endforeach
-            <a href="{{ route('parks.compare', ['parks' => [$park->id, $nearby->first()?->id]]) }}" class="btn btn-sm btn-outline-forest mt-2 w-100"><i class="bi bi-layout-split"></i> Compare with nearby</a>
+            <h5 class="mt-4">Plan this park</h5>
+            <div class="d-grid gap-2">
+                <a href="{{ route('itinerary.index') }}" class="btn btn-gold btn-sm"><i class="bi bi-calendar2-week"></i> Smart Itinerary</a>
+                <a href="{{ route('budget') }}" class="btn btn-outline-forest btn-sm"><i class="bi bi-calculator"></i> Budget calculator</a>
+                <a href="{{ route('navigate') }}" class="btn btn-outline-forest btn-sm"><i class="bi bi-map"></i> Park map & routes</a>
+            </div>
         </div>
     </div>
 </div>

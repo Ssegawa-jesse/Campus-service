@@ -20,7 +20,7 @@ class Booking extends Model
     ];
 
     protected $fillable = [
-        'reference', 'tourist_id', 'operator_id', 'park_id', 'tour_package_id', 'travel_date', 'group_size',
+        'reference', 'tourist_id', 'operator_id', 'park_id', 'tour_package_id', 'itinerary_id', 'travel_date', 'group_size',
         'contact_phone', 'message', 'status', 'quoted_amount', 'operator_response', 'responded_at',
     ];
 
@@ -32,7 +32,7 @@ class Booking extends Model
     protected static function booted(): void
     {
         static::creating(function (Booking $booking) {
-            $booking->reference ??= 'P360-'.strtoupper(Str::random(6));
+            $booking->reference ??= 'MFNP-'.strtoupper(Str::random(6));
         });
     }
 
@@ -59,6 +59,11 @@ class Booking extends Model
     public function package(): BelongsTo
     {
         return $this->belongsTo(TourPackage::class, 'tour_package_id');
+    }
+
+    public function itinerary(): BelongsTo
+    {
+        return $this->belongsTo(Itinerary::class);
     }
 
     public function payments(): HasMany

@@ -3,12 +3,19 @@
     $menus = [
         'admin' => [
             ['admin.dashboard', 'speedometer2', 'Dashboard & analytics'],
-            ['admin.parks.index', 'tree', 'Parks, media & 360°'],
+            ['admin.studio', 'badge-vr', 'HP5 360° Media & Hotspot Studio'],
+            ['admin.uwa-activities.index', 'cash-stack', 'Activities & UWA prices'],
+            ['admin.places.index', 'geo-alt', 'Map places & gates'],
+            ['admin.travel-updates.index', 'broadcast', 'Travel updates'],
+            ['admin.itineraries.index', 'calendar2-week', 'Smart itineraries'],
+            ['admin.bookings.index', 'calendar-check', 'Bookings'],
+            ['admin.payments.index', 'cash-coin', 'Payments'],
+            ['admin.notifications.index', 'send-check', 'SMS & email logs'],
+            ['admin.assistant-logs', 'robot', 'AI assistant logs'],
+            ['admin.parks.index', 'tree', 'Park profile & gallery'],
             ['admin.operators.index', 'briefcase', 'Tour operators'],
             ['admin.users.index', 'people', 'Users & admins'],
             ['admin.users.activity', 'clock-history', 'Login activity'],
-            ['admin.bookings.index', 'calendar-check', 'Bookings'],
-            ['admin.payments.index', 'cash-coin', 'Payments'],
             ['admin.reviews.index', 'star', 'Reviews'],
             ['admin.sms.index', 'chat-dots', 'SMS centre'],
             ['admin.messages.index', 'envelope', 'Contact messages'],
@@ -16,15 +23,17 @@
         ],
         'operator' => [
             ['operator.dashboard', 'speedometer2', 'Dashboard'],
-            ['operator.bookings.index', 'inbox', 'Booking enquiries'],
-            ['operator.packages.index', 'backpack', 'My packages'],
+            ['operator.bookings.index', 'inbox', 'Tourist bookings'],
+            ['operator.packages.index', 'backpack', 'Safari packages & media'],
             ['operator.profile.edit', 'building', 'Company profile'],
         ],
         'tourist' => [
             ['tourist.dashboard', 'speedometer2', 'My dashboard'],
-            ['tourist.bookings.index', 'calendar-check', 'My bookings'],
-            ['planner.index', 'magic', 'Plan a new trip'],
-            ['parks.index', 'binoculars', 'Explore parks'],
+            ['itinerary.index', 'calendar2-week', 'Smart Itinerary'],
+            ['tourist.bookings.index', 'calendar-check', 'My bookings & payments'],
+            ['budget', 'calculator', 'Budget calculator'],
+            ['assistant', 'robot', 'AI Travel Assistant'],
+            ['explore', 'badge-vr', '360° previews'],
         ],
     ][$user->role] ?? [];
 @endphp
@@ -34,12 +43,12 @@
             <img src="{{ media_url($user->avatar, 'images/avatar.svg') }}" class="rounded-circle" width="48" height="48" alt="">
             <div>
                 <div class="fw-semibold">{{ $user->name }}</div>
-                <span class="badge role-badge role-{{ $user->role }} text-capitalize">{{ $user->role === 'admin' ? 'Administrator (UWA)' : ($user->role === 'operator' ? 'Tour operator' : 'Tourist') }}</span>
+                <span class="badge role-badge role-{{ $user->role }} text-capitalize">{{ $user->role === 'admin' ? 'Admin & MUBS Researcher' : ($user->role === 'operator' ? 'Tour operator' : 'Tourist') }}</span>
             </div>
         </div>
         <nav class="nav flex-column">
             @foreach ($menus as [$route, $icon, $label])
-                <a href="{{ route($route) }}" class="nav-link {{ (str_starts_with($route, 'admin.users.') ? request()->routeIs($route === 'admin.users.activity' ? $route : ['admin.users.index', 'admin.users.create']) : request()->routeIs(Str::beforeLast($route, '.').'*')) && $route !== 'planner.index' && $route !== 'parks.index' ? 'active' : '' }}">
+                <a href="{{ route($route) }}" class="nav-link {{ (str_starts_with($route, 'admin.users.') ? request()->routeIs($route === 'admin.users.activity' ? $route : ['admin.users.index', 'admin.users.create']) : request()->routeIs(substr_count($route, '.') >= 2 ? Str::beforeLast($route, '.').'*' : $route)) ? 'active' : '' }}">
                     <i class="bi bi-{{ $icon }} me-2"></i>{{ $label }}
                     @if ($route === 'admin.operators.index' && ($pendingOperatorCount ?? 0))<span class="badge bg-danger float-end">{{ $pendingOperatorCount }}</span>@endif
                 </a>

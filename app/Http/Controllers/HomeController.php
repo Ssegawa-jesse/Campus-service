@@ -16,28 +16,22 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $parks = Park::published()->withCount('scenes')->withAvg(['reviews' => fn ($q) => $q->where('is_approved', true)], 'rating')->orderBy('name')->get();
+        $park = Park::where('slug', config('murchison.park_slug'))->first();
 
         return view('home', [
-            'parks' => $parks,
-            'featured' => $parks->sortByDesc('views_count')->take(6),
-            'hiddenGems' => $parks->sortBy('views_count')->take(3),
-            'videoParks' => $parks->filter(fn ($p) => youtube_embed($p->video_url))->sortByDesc('views_count')->take(3),
+            'park' => $park,
+            'activities' => \App\Models\Activity::active()->with('place')->orderByDesc('priority')->get(),
+            'updates' => \App\Models\TravelUpdate::current()->take(3)->get(),
             'packages' => TourPackage::with('park', 'operator')->where('is_active', true)
-                ->whereHas('operator', fn ($q) => $q->where('is_verified', true))->latest()->take(6)->get(),
-            'reviews' => Review::with('user', 'park')->where('is_approved', true)->whereNotNull('park_id')->latest()->take(3)->get(),
+                ->whereHas('operator', fn ($q) => $q->where('is_verified', true))->latest()->take(3)->get(),
+            'reviews' => Review::with('user')->where('is_approved', true)->whereNotNull('park_id')->latest()->take(3)->get(),
             'stats' => [
-                'parks' => $parks->count(),
-                'scenes' => Scene::count(),
-                'operators' => Operator::where('is_verified', true)->count(),
-                'trips' => Booking::whereIn('status', ['paid', 'confirmed', 'completed'])->count(),
+                'activities' => \App\Models\Activity::active()->count(),
+                'scenes' => Scene::where('is_published', true)->count(),
+                'places' => \App\Models\Place::where('is_active', true)->count(),
+                'itineraries' => \App\Models\Itinerary::count(),
             ],
         ]);
-    }
-
-    public function map()
-    {
-        return view('map', ['parks' => Park::published()->withCount('scenes')->orderBy('name')->get()]);
     }
 
     public function about()

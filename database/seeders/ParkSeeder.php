@@ -2,313 +2,156 @@
 
 namespace Database\Seeders;
 
+use App\Models\Activity;
 use App\Models\Park;
+use App\Models\Place;
 use App\Services\PlaceholderImageGenerator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 /**
- * Uganda's ten national parks (UWA). Costs are INDICATIVE foreign non-resident USD
- * prices – always verify current tariffs at https://www.ugandawildlife.org before publishing.
- * Images are generated placeholders: replace them in Admin → Parks → Gallery / 360° Scenes.
+ * MURCHISON FALLS NATIONAL PARK ONLY (research scope).
+ * Seeds the park, the Smart Navigation places (gates, Paraa Jetty, Baker's Trail, Pakuba Airfield,
+ * attractions), the seven research activities with UWA tiered prices, a placeholder 360° scene per
+ * activity (replace with HP5 360 VR captures in Admin → 360° Studio) and a gallery.
+ * Coordinates are approximate (for orientation, not for navigation). Prices are indicative UWA
+ * planning figures — confirm the current tariff with the Uganda Wildlife Authority.
  */
 class ParkSeeder extends Seeder
 {
     public function run(PlaceholderImageGenerator $images): void
     {
-        foreach ($this->parks() as $i => $data) {
-            $scenes = $data['scenes'];
-            $activities = $data['activities'];
-            $theme = $data['theme'];
-            unset($data['scenes'], $data['activities'], $data['theme']);
+        // Research scope: remove any other park left over from earlier versions.
+        Park::where('slug', '!=', config('murchison.park_slug'))->delete();
 
-            $slug = Str::slug($data['name']);
-            $dir = 'uploads/seed/'.$slug;
+        $dir = 'uploads/seed/murchison-falls-national-park';
+        $park = Park::updateOrCreate(['slug' => config('murchison.park_slug')], [
+            'name' => 'Murchison Falls National Park', 'type' => 'national_park', 'region' => 'North-western Uganda',
+            'tagline' => 'Where the Victoria Nile explodes through a 7-metre gorge',
+            'description' => "Uganda's largest and oldest national park (≈3,893 km², gazetted 1952) is split by the Victoria Nile, which squeezes through a 7-metre gap and plunges 43 metres at Murchison Falls before flowing west into Lake Albert. North of the river the Buligi grasslands hold elephants, Rothschild's giraffes, lions, buffaloes, Uganda kobs and Jackson's hartebeest. Boat cruises from Paraa reach the base of the falls and the papyrus delta, home of the rare shoebill, while Budongo Forest in the south of the conservation area shelters habituated chimpanzees. The park is managed by the Uganda Wildlife Authority (UWA).",
+            'how_to_get_there' => 'About 305 km (5–6 hours) from Kampala via Luweero and Masindi to Kichumbanyobo Gate. Other gates: Bugungu (west), Tangi and Chobe (east, near Karuma), Wankwar (north). Scheduled and charter flights land at Pakuba Airfield.',
+            'best_time' => 'December–February and June–September (dry seasons)', 'best_months' => [1, 2, 6, 7, 8, 9, 12],
+            'interests' => ['big_game', 'boat', 'waterfalls', 'birding', 'chimpanzees', 'hiking'],
+            'difficulty_level' => 1, 'min_cost' => 45, 'min_days' => 2, 'area_km2' => 3893, 'distance_from_kampala_km' => 305,
+            'established' => 1952, 'latitude' => 2.2100, 'longitude' => 31.7500, 'is_unesco' => false, 'is_published' => true,
+            'cover_image' => "{$dir}/cover.jpg",
+        ]);
 
-            $cover = $this->image("{$dir}/cover.jpg", fn ($full) => $images->photo($full, $theme, $i + 11), 'images/placeholder-park.svg');
+        // ---- Smart Navigation places --------------------------------------------------
+        $places = [];
+        foreach ($this->places() as $p) {
+            $places[$p['slug']] = Place::updateOrCreate(['slug' => $p['slug']], $p + ['is_active' => true]);
+        }
 
-            $park = Park::updateOrCreate(['slug' => $slug], $data + ['slug' => $slug, 'cover_image' => $cover]);
+        // ---- Activities with UWA tiered prices -------------------------------------------
+        Activity::where('park_id', $park->id)->where(fn ($q) => $q->whereNull('slug')->orWhereNotIn('slug', array_column($this->activities(), 'slug')))->delete();
+        $acts = [];
+        foreach ($this->activities() as $a) {
+            $placeSlug = $a['place'];
+            unset($a['place']);
+            $acts[$a['slug']] = Activity::updateOrCreate(['slug' => $a['slug']], $a + [
+                'park_id' => $park->id, 'place_id' => $places[$placeSlug]->id, 'is_active' => true,
+                'indicative_cost' => $a['price_fnr_usd'], 'duration' => rtrim(rtrim(number_format($a['hours'], 1), '0'), '.').' hours',
+            ]);
+        }
 
-            $park->activities()->delete();
-            $park->activities()->createMany($activities);
+        // ---- Gallery ---------------------------------------------------------------------
+        $park->media()->delete();
+        $park->media()->create(['type' => 'image', 'path' => "{$dir}/cover.jpg", 'caption' => 'The Victoria Nile at Murchison Falls', 'credit' => 'Placeholder – replace with field photo', 'sort_order' => 1]);
+        $park->media()->create(['type' => 'image', 'path' => "{$dir}/gallery-1.jpg", 'caption' => 'North Bank savannah', 'credit' => 'Placeholder – replace with field photo', 'sort_order' => 2, 'activity_id' => $acts['north-bank-game-drive']->id]);
+        $park->media()->create(['type' => 'image', 'path' => "{$dir}/gallery-2.jpg", 'caption' => 'Riverine scenery near Paraa', 'credit' => 'Placeholder – replace with field photo', 'sort_order' => 3, 'activity_id' => $acts['victoria-nile-boat-cruise']->id]);
 
-            // Gallery: two extra placeholder photos per park
-            $park->media()->delete();
-            foreach ([1, 2] as $n) {
-                $path = $this->image("{$dir}/gallery-{$n}.jpg", fn ($full) => $images->photo($full, $scenes[$n]['theme'] ?? $theme, ($i + 1) * 100 + $n), 'images/placeholder-park.svg');
-                $park->media()->create(['type' => 'image', 'path' => $path, 'caption' => $scenes[$n]['title'] ?? $data['name'], 'credit' => 'Placeholder – replace with your photo', 'sort_order' => $n]);
+        // ---- 360° scenes: one per activity (placeholders until HP5 captures are uploaded) --
+        $park->scenes()->delete();
+        $themes = ['victoria-nile-boat-cruise' => ['pano-1.jpg', 'water'], 'north-bank-game-drive' => ['pano-2.jpg', 'savannah'], 'hike-to-the-top-of-the-falls' => ['pano-0.jpg', 'water'],
+            'budongo-chimpanzee-trekking' => ['pano-chimps.jpg', 'forest'], 'albert-delta-shoebill-birding' => ['pano-delta.jpg', 'water'],
+            'sport-fishing' => ['pano-fishing.jpg', 'water'], 'night-game-drive' => ['pano-night.jpg', 'sunset']];
+        $scenes = [];
+        $i = 0;
+        foreach ($this->sceneInfo() as $slug => [$title, $desc, $info]) {
+            [$file, $theme] = $themes[$slug];
+            $path = "{$dir}/{$file}";
+            if (! file_exists(public_path($path)) && function_exists('imagecreatetruecolor')) {
+                $images->panorama(public_path($path), $theme, 70 + $i);
             }
-
-            // 360° scenes, linked to each other in a loop with navigation hotspots
-            $park->scenes()->delete();
-            $created = [];
-            foreach ($scenes as $s => $scene) {
-                $path = $this->image("{$dir}/pano-{$s}.jpg", fn ($full) => $images->panorama($full, $scene['theme'], ($i + 1) * 10 + $s), 'images/placeholder-pano.jpg');
-                $created[] = $park->scenes()->create([
-                    'title' => $scene['title'],
-                    'description' => $scene['description'],
-                    'image_path' => $path,
-                    'sort_order' => $s,
-                ]);
+            $scene = $park->scenes()->create([
+                'activity_id' => $acts[$slug]->id, 'title' => $title, 'description' => $desc,
+                'image_path' => file_exists(public_path($path)) ? $path : 'images/placeholder-pano.jpg',
+                'camera' => 'HP5 360 VR (placeholder – replace with field capture)', 'sort_order' => $i++, 'is_published' => true,
+            ]);
+            foreach ($info as $k => [$t, $text]) {
+                $scene->hotspots()->create(['type' => 'info', 'pitch' => -4 + $k * 8, 'yaw' => -60 + $k * 95, 'title' => $t, 'info_text' => $text, 'activity_id' => $k === 0 ? $acts[$slug]->id : null]);
             }
-
-            foreach ($created as $s => $scene) {
-                $next = $created[($s + 1) % count($created)];
-                $prev = $created[($s - 1 + count($created)) % count($created)];
-                $scene->hotspots()->create(['type' => 'scene', 'target_scene_id' => $next->id, 'pitch' => -8, 'yaw' => 30, 'title' => 'Go to: '.$next->title]);
-                if ($prev->id !== $next->id) {
-                    $scene->hotspots()->create(['type' => 'scene', 'target_scene_id' => $prev->id, 'pitch' => -8, 'yaw' => -150, 'title' => 'Back to: '.$prev->title]);
-                }
-                foreach ($scenes[$s]['info'] as $k => [$title, $text]) {
-                    $scene->hotspots()->create(['type' => 'info', 'pitch' => 4 + $k * 6, 'yaw' => -40 + $k * 110, 'title' => $title, 'info_text' => $text]);
-                }
-            }
+            $scenes[] = $scene;
+        }
+        foreach ($scenes as $s => $scene) {
+            $next = $scenes[($s + 1) % count($scenes)];
+            $scene->hotspots()->create(['type' => 'scene', 'target_scene_id' => $next->id, 'pitch' => -10, 'yaw' => 150, 'title' => 'Next: '.$next->title]);
         }
     }
 
-    /**
-     * The placeholder images ship with the project in public/uploads/seed, so PHP's GD
-     * extension is NOT required. They are only redrawn if a file was deleted and GD is on;
-     * otherwise a generic placeholder is used.
-     */
-    private function image(string $path, callable $draw, string $fallback): string
+    private function places(): array
     {
-        if (file_exists(public_path($path))) {
-            return $path;
-        }
-        if (! function_exists('imagecreatetruecolor')) {
-            return $fallback;
-        }
-        $draw(public_path($path));
-
-        return $path;
-    }
-
-    private function parks(): array
-    {
-        $dryA = [1, 2, 6, 7, 8, 12];         // June–August & December–February
-        $dryB = [1, 2, 6, 7, 8, 9, 12];
-
         return [
-            [
-                'name' => 'Bwindi Impenetrable National Park', 'region' => 'South-western', 'type' => 'national_park',
-                'tagline' => 'Home to nearly half of the world\'s mountain gorillas',
-                'description' => "Bwindi's ancient montane rainforest in Kanungu and Kisoro districts shelters around half of the world's remaining mountain gorillas. Visitors trek through steep, misty valleys in four sectors – Buhoma, Ruhija, Rushaga and Nkuringo – to spend an unforgettable hour with a habituated gorilla family. The forest is also a birding hotspot with many Albertine Rift endemics, and the Batwa community offers cultural experiences that tell the story of the forest's original people. Bwindi was listed as a UNESCO World Heritage Site in 1994.",
-                'how_to_get_there' => 'About 8–10 hours by road from Kampala via Mbarara and Kabale/Rukungiri, or scheduled/charter flights from Entebbe to Kihihi or Kisoro airstrips.',
-                'best_time' => 'June–August and December–February (drier months)', 'best_months' => $dryA,
-                'interests' => ['gorillas', 'primates', 'birding', 'hiking', 'culture'],
-                'difficulty_level' => 3, 'min_cost' => 840, 'min_days' => 2, 'area_km2' => 321, 'distance_from_kampala_km' => 530,
-                'established' => 1991, 'latitude' => -1.0500, 'longitude' => 29.7000, 'is_unesco' => true, 'theme' => 'forest',
-                'activities' => [
-                    ['name' => 'Mountain gorilla trekking', 'category' => 'primates', 'fitness_level' => 3, 'duration' => '2–8 hours', 'indicative_cost' => 800, 'description' => 'Track a habituated gorilla family and spend one hour with them.'],
-                    ['name' => 'Gorilla habituation experience', 'category' => 'primates', 'fitness_level' => 3, 'duration' => 'Full day (4 hrs with gorillas)', 'indicative_cost' => 1500, 'description' => 'Join researchers habituating a semi-wild family (Rushaga sector).'],
-                    ['name' => 'Batwa cultural trail', 'category' => 'culture', 'fitness_level' => 1, 'duration' => '3–4 hours', 'indicative_cost' => 80, 'description' => 'Learn hunting, gathering and forest traditions from the Batwa.'],
-                    ['name' => 'Forest birding walk', 'category' => 'birding', 'fitness_level' => 2, 'duration' => 'Half day', 'indicative_cost' => 30, 'description' => 'Look for Albertine Rift endemics such as the African green broadbill.'],
-                    ['name' => 'Munyaga River / waterfall nature walk', 'category' => 'nature', 'fitness_level' => 1, 'duration' => '2–3 hours', 'indicative_cost' => 30, 'description' => 'Gentle walk to forest waterfalls near Buhoma.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Buhoma forest trailhead', 'theme' => 'forest', 'description' => 'The starting point for gorilla treks in the Buhoma sector.', 'info' => [['Briefing point', 'Rangers brief trekkers here at about 7:30am before groups set off.'], ['Rules', 'Keep 7 metres from gorillas, no flash photography, and one hour with the family.']]],
-                    ['title' => 'Inside the impenetrable forest', 'theme' => 'forest', 'description' => 'Dense vegetation on the slopes where gorilla families feed.', 'info' => [['Gorilla family', 'Habituated families move daily – trackers radio the guides with their location.']]],
-                    ['title' => 'Misty valley viewpoint', 'theme' => 'mountain', 'description' => 'Rolling forested hills above Nkuringo.', 'info' => [['Virunga view', 'On clear days you can see the Virunga volcanoes to the south.']]],
-                ],
-            ],
-            [
-                'name' => 'Mgahinga Gorilla National Park', 'region' => 'South-western', 'type' => 'national_park',
-                'tagline' => 'Where silver meets gold – gorillas and golden monkeys',
-                'description' => 'Uganda\'s smallest national park sits on the slopes of three extinct Virunga volcanoes – Muhavura, Gahinga and Sabyinyo – where Uganda, Rwanda and DR Congo meet. It is the only place in Uganda to track both mountain gorillas and the endangered golden monkey. Volcano hikes reward climbers with crater lakes and views across three countries, and the Batwa Trail explores caves once used by the forest\'s first people.',
-                'how_to_get_there' => 'About 9–10 hours from Kampala via Kabale to Kisoro town, then 14 km to Ntebeko gate. Flights available to Kisoro airstrip.',
-                'best_time' => 'June–August and December–February', 'best_months' => $dryA,
-                'interests' => ['gorillas', 'primates', 'hiking', 'culture', 'birding'],
-                'difficulty_level' => 3, 'min_cost' => 100, 'min_days' => 2, 'area_km2' => 34, 'distance_from_kampala_km' => 540,
-                'established' => 1991, 'latitude' => -1.3667, 'longitude' => 29.6333, 'is_unesco' => false, 'theme' => 'volcano',
-                'activities' => [
-                    ['name' => 'Mountain gorilla trekking (Nyakagezi family)', 'category' => 'primates', 'fitness_level' => 3, 'duration' => '3–6 hours', 'indicative_cost' => 800, 'description' => 'Track the Nyakagezi gorilla group on the volcano slopes.'],
-                    ['name' => 'Golden monkey tracking', 'category' => 'primates', 'fitness_level' => 2, 'duration' => '3–4 hours', 'indicative_cost' => 60, 'description' => 'Follow playful golden monkeys through the bamboo forest.'],
-                    ['name' => 'Mount Sabyinyo / Muhavura volcano hike', 'category' => 'hiking', 'fitness_level' => 3, 'duration' => 'Full day', 'indicative_cost' => 80, 'description' => 'Climb to the summit where three countries meet.'],
-                    ['name' => 'Batwa Trail', 'category' => 'culture', 'fitness_level' => 1, 'duration' => '4 hours', 'indicative_cost' => 80, 'description' => 'Visit Garama Cave with Batwa guides.'],
-                    ['name' => 'Gorge trail birding', 'category' => 'birding', 'fitness_level' => 2, 'duration' => 'Half day', 'indicative_cost' => 30, 'description' => 'Look for the Rwenzori turaco and other montane birds.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Ntebeko gate & volcano view', 'theme' => 'volcano', 'description' => 'The three Virunga volcanoes rise above the park gate.', 'info' => [['Muhavura', 'At 4,127 m, Muhavura is the highest of the three volcanoes.'], ['Three countries', 'Sabyinyo\'s peak is where Uganda, Rwanda and DR Congo meet.']]],
-                    ['title' => 'Bamboo forest', 'theme' => 'forest', 'description' => 'Golden monkey habitat on the lower slopes.', 'info' => [['Golden monkeys', 'Endangered primates found only in the Virunga area.']]],
-                    ['title' => 'Crater rim', 'theme' => 'mountain', 'description' => 'View from the top of Mount Gahinga.', 'info' => [['Crater swamp', 'Gahinga\'s summit holds a swampy crater about 180 m wide.']]],
-                ],
-            ],
-            [
-                'name' => 'Queen Elizabeth National Park', 'region' => 'Western', 'type' => 'national_park',
-                'tagline' => 'Tree-climbing lions and the Kazinga Channel',
-                'description' => 'Queen Elizabeth is Uganda\'s most visited savannah park, stretching from the Rwenzori foothills to Lake Edward. The Kazinga Channel boat cruise brings visitors close to hippos, elephants, buffaloes and hundreds of water birds, while the Ishasha sector is famous for its tree-climbing lions. Explosion craters, the Kyambura "Valley of Apes" chimpanzees, the Maramagambo Forest and community tourism at Lake Katwe salt pans make this one of the most diverse parks in Africa, with over 600 bird species.',
-                'how_to_get_there' => 'About 6–7 hours from Kampala via Mbarara or Fort Portal. Airstrips at Mweya and Kasese.',
-                'best_time' => 'June–September and December–February', 'best_months' => $dryB,
-                'interests' => ['big_game', 'boat', 'birding', 'chimpanzees', 'primates', 'culture'],
-                'difficulty_level' => 1, 'min_cost' => 75, 'min_days' => 2, 'area_km2' => 1978, 'distance_from_kampala_km' => 400,
-                'established' => 1952, 'latitude' => -0.1900, 'longitude' => 29.9000, 'is_unesco' => false, 'theme' => 'savannah',
-                'activities' => [
-                    ['name' => 'Kazinga Channel boat cruise', 'category' => 'boat', 'fitness_level' => 1, 'duration' => '2 hours', 'indicative_cost' => 35, 'description' => 'See hippos, crocodiles, elephants and water birds along the channel.'],
-                    ['name' => 'Kasenyi game drive', 'category' => 'game_drive', 'fitness_level' => 1, 'duration' => '3–4 hours', 'indicative_cost' => 30, 'description' => 'Morning drive for lions, Uganda kob and elephants.'],
-                    ['name' => 'Ishasha tree-climbing lions', 'category' => 'game_drive', 'fitness_level' => 1, 'duration' => 'Half day', 'indicative_cost' => 30, 'description' => 'Search the fig trees of Ishasha for resting lions.'],
-                    ['name' => 'Kyambura Gorge chimpanzee tracking', 'category' => 'primates', 'fitness_level' => 2, 'duration' => '3 hours', 'indicative_cost' => 50, 'description' => 'Descend into the "Valley of Apes".'],
-                    ['name' => 'Lake Katwe salt works community tour', 'category' => 'culture', 'fitness_level' => 1, 'duration' => '2 hours', 'indicative_cost' => 20, 'description' => 'See traditional salt mining in a crater lake.'],
-                    ['name' => 'Explosion craters drive', 'category' => 'nature', 'fitness_level' => 1, 'duration' => '2–3 hours', 'indicative_cost' => 20, 'description' => 'Scenic drive between volcanic crater lakes.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Kazinga Channel', 'theme' => 'water', 'description' => 'The 32 km channel joining Lake George and Lake Edward.', 'info' => [['Hippos', 'One of the largest hippo concentrations in Africa.'], ['Mweya peninsula', 'Lodges and the launch jetty sit on the peninsula above the channel.']]],
-                    ['title' => 'Kasenyi plains', 'theme' => 'savannah', 'description' => 'Open grassland with Uganda kob breeding grounds.', 'info' => [['Uganda kob', 'The national antelope, seen on Uganda\'s coat of arms.']]],
-                    ['title' => 'Ishasha sunset', 'theme' => 'sunset', 'description' => 'Fig trees where lions rest in the afternoon.', 'info' => [['Tree-climbing lions', 'Lions climb fig trees to escape heat and insects.']]],
-                ],
-            ],
-            [
-                'name' => 'Murchison Falls National Park', 'region' => 'North-western', 'type' => 'national_park',
-                'tagline' => 'Where the Nile explodes through a 7-metre gorge',
-                'description' => 'Uganda\'s largest and oldest national park is split by the Victoria Nile, which squeezes through a narrow gorge and plunges 43 metres at the Murchison Falls. North of the river, the Buligi grasslands host giraffes, elephants, lions and buffaloes, while launch trips to the base of the falls and the Nile delta offer excellent views of hippos, crocodiles and the rare shoebill stork. Budongo Forest nearby offers chimpanzee tracking.',
-                'how_to_get_there' => 'About 5–6 hours from Kampala via Masindi (with a stop at Ziwa Rhino Sanctuary). Airstrips at Pakuba and Bugungu.',
-                'best_time' => 'December–February and June–September', 'best_months' => $dryB,
-                'interests' => ['big_game', 'boat', 'waterfalls', 'birding', 'chimpanzees', 'hiking'],
-                'difficulty_level' => 1, 'min_cost' => 75, 'min_days' => 2, 'area_km2' => 3840, 'distance_from_kampala_km' => 305,
-                'established' => 1952, 'latitude' => 2.2500, 'longitude' => 31.8000, 'is_unesco' => false, 'theme' => 'water',
-                'activities' => [
-                    ['name' => 'Launch trip to the bottom of the falls', 'category' => 'boat', 'fitness_level' => 1, 'duration' => '3 hours', 'indicative_cost' => 35, 'description' => 'Cruise upstream from Paraa to the foot of the falls.'],
-                    ['name' => 'Hike to the top of the falls', 'category' => 'hiking', 'fitness_level' => 2, 'duration' => '1–2 hours', 'indicative_cost' => 15, 'description' => 'Walk up from the river to feel the power of the Nile.'],
-                    ['name' => 'Buligi game drive', 'category' => 'game_drive', 'fitness_level' => 1, 'duration' => '3–4 hours', 'indicative_cost' => 30, 'description' => 'Rothschild\'s giraffes, elephants and lions on the northern bank.'],
-                    ['name' => 'Nile delta shoebill cruise', 'category' => 'birding', 'fitness_level' => 1, 'duration' => '4–5 hours', 'indicative_cost' => 50, 'description' => 'Search the papyrus for the prehistoric-looking shoebill.'],
-                    ['name' => 'Budongo chimpanzee tracking', 'category' => 'primates', 'fitness_level' => 2, 'duration' => '3–4 hours', 'indicative_cost' => 130, 'description' => 'Track chimps in the Kaniyo Pabidi forest.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Top of Murchison Falls', 'theme' => 'water', 'description' => 'The Nile forces its way through a 7 m wide gap.', 'info' => [['Power of the Nile', 'Around 300 cubic metres of water a second pass through the gorge.'], ['Uhuru Falls', 'A second, wider fall formed after the 1962 floods.']]],
-                    ['title' => 'Paraa & the Victoria Nile', 'theme' => 'water', 'description' => 'The ferry crossing and launch jetty.', 'info' => [['Ferry', 'The Paraa ferry links the southern and northern banks.']]],
-                    ['title' => 'Buligi grasslands', 'theme' => 'savannah', 'description' => 'Borassus palms and giraffe country.', 'info' => [['Rothschild\'s giraffe', 'Murchison holds one of the largest populations of this subspecies.']]],
-                ],
-            ],
-            [
-                'name' => 'Kidepo Valley National Park', 'region' => 'North-eastern', 'type' => 'national_park',
-                'tagline' => 'Africa\'s untouched wilderness in the Karamoja drylands',
-                'description' => 'Tucked into the far north-east corner of Uganda on the borders of South Sudan and Kenya, Kidepo Valley is a rugged savannah surrounded by mountains. Its remoteness rewards visitors with uncrowded game viewing: large herds of buffalo, elephants, lions, cheetahs, ostriches and species found nowhere else in Uganda such as the striped hyena and bat-eared fox. Visits to Karamojong and Ik communities add a rich cultural dimension.',
-                'how_to_get_there' => 'About 10–12 hours by road from Kampala via Gulu and Kitgum, or a 2-hour scheduled/charter flight to Apoka airstrip.',
-                'best_time' => 'September–March (dry season)', 'best_months' => [1, 2, 3, 9, 10, 11, 12],
-                'interests' => ['big_game', 'remote', 'culture', 'birding', 'hiking'],
-                'difficulty_level' => 1, 'min_cost' => 70, 'min_days' => 3, 'area_km2' => 1442, 'distance_from_kampala_km' => 700,
-                'established' => 1962, 'latitude' => 3.8200, 'longitude' => 33.8500, 'is_unesco' => false, 'theme' => 'sunset',
-                'activities' => [
-                    ['name' => 'Narus Valley game drive', 'category' => 'game_drive', 'fitness_level' => 1, 'duration' => '3–4 hours', 'indicative_cost' => 30, 'description' => 'Year-round water attracts lions, elephants and buffalo.'],
-                    ['name' => 'Kidepo Valley & Kanangorok hot springs', 'category' => 'nature', 'fitness_level' => 1, 'duration' => 'Full day', 'indicative_cost' => 30, 'description' => 'Drive to the sand river and hot springs near the border.'],
-                    ['name' => 'Karamojong manyatta visit', 'category' => 'culture', 'fitness_level' => 1, 'duration' => '2–3 hours', 'indicative_cost' => 25, 'description' => 'Visit a traditional Karamojong homestead.'],
-                    ['name' => 'Morungole mountain hike (Ik community)', 'category' => 'hiking', 'fitness_level' => 3, 'duration' => 'Full day', 'indicative_cost' => 40, 'description' => 'Hike to meet the Ik people in the Morungole range.'],
-                    ['name' => 'Savannah birding', 'category' => 'birding', 'fitness_level' => 1, 'duration' => 'Half day', 'indicative_cost' => 30, 'description' => 'Ostriches, Kori bustards and many raptors.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Narus Valley', 'theme' => 'savannah', 'description' => 'The park\'s wildlife heartland.', 'info' => [['Buffalo herds', 'Herds of several hundred buffalo are common.'], ['Apoka', 'Rest camp and park headquarters overlook the valley.']]],
-                    ['title' => 'Sunset over the mountains', 'theme' => 'sunset', 'description' => 'The Morungole range at dusk.', 'info' => [['Remote wilderness', 'Often called one of Africa\'s finest wilderness areas.']]],
-                    ['title' => 'Kanangorok hot springs', 'theme' => 'savannah', 'description' => 'Near the South Sudan border.', 'info' => [['Hot springs', 'Water emerges at over 50°C.']]],
-                ],
-            ],
-            [
-                'name' => 'Lake Mburo National Park', 'region' => 'Western', 'type' => 'national_park',
-                'tagline' => 'Zebras, walking safaris and horseback rides – close to Kampala',
-                'description' => 'The closest savannah park to Kampala, Lake Mburo is a compact mosaic of acacia woodland, rolling hills and five lakes. It is the only park in western Uganda with zebras and impalas, and one of the few where you can explore on foot, by bicycle or on horseback. Boat trips on Lake Mburo reveal hippos, crocodiles and the African finfoot, making it ideal for a short break or a stop on the way to the south-west.',
-                'how_to_get_there' => 'About 3.5–4 hours from Kampala on the Masaka–Mbarara road, turning at Sanga or Nshaara gates.',
-                'best_time' => 'June–September and December–February', 'best_months' => $dryB,
-                'interests' => ['walking_safari', 'boat', 'big_game', 'birding'],
-                'difficulty_level' => 1, 'min_cost' => 70, 'min_days' => 1, 'area_km2' => 370, 'distance_from_kampala_km' => 230,
-                'established' => 1983, 'latitude' => -0.6000, 'longitude' => 30.9500, 'is_unesco' => false, 'theme' => 'savannah',
-                'activities' => [
-                    ['name' => 'Guided walking safari', 'category' => 'nature', 'fitness_level' => 1, 'duration' => '2–3 hours', 'indicative_cost' => 30, 'description' => 'Walk among zebras, impalas and elands with an armed ranger.'],
-                    ['name' => 'Horseback safari', 'category' => 'nature', 'fitness_level' => 2, 'duration' => '1–4 hours', 'indicative_cost' => 55, 'description' => 'Ride alongside zebras – the only horseback safari in Uganda.'],
-                    ['name' => 'Lake Mburo boat trip', 'category' => 'boat', 'fitness_level' => 1, 'duration' => '2 hours', 'indicative_cost' => 30, 'description' => 'Hippos, crocodiles and the elusive African finfoot.'],
-                    ['name' => 'Night game drive', 'category' => 'game_drive', 'fitness_level' => 1, 'duration' => '2 hours', 'indicative_cost' => 40, 'description' => 'Spot leopards, hyenas and bush babies after dark.'],
-                    ['name' => 'Mountain biking', 'category' => 'nature', 'fitness_level' => 2, 'duration' => '2–3 hours', 'indicative_cost' => 25, 'description' => 'Cycle the trails of the Rwonyo area.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Acacia savannah', 'theme' => 'savannah', 'description' => 'Zebras graze between the acacias.', 'info' => [['Zebras', 'Lake Mburo is the best place in Uganda to see Burchell\'s zebra.'], ['Walking safari', 'Walks start early from Rwonyo.']]],
-                    ['title' => 'Lake Mburo shore', 'theme' => 'water', 'description' => 'The jetty for boat trips.', 'info' => [['Five lakes', 'The park holds 5 of the 14 lakes of the Mburo wetland system.']]],
-                    ['title' => 'Kigambira loop at dusk', 'theme' => 'sunset', 'description' => 'Rolling hills at sunset.', 'info' => [['Leopards', 'Night drives often reveal leopards.']]],
-                ],
-            ],
-            [
-                'name' => 'Rwenzori Mountains National Park', 'region' => 'Western', 'type' => 'national_park',
-                'tagline' => 'The legendary Mountains of the Moon',
-                'description' => 'The Rwenzori Mountains form a snow-capped range on the Uganda–DR Congo border, rising to 5,109 m at Margherita Peak on Mount Stanley – the third-highest point in Africa. Trekkers pass through otherworldly vegetation zones of giant lobelias, groundsels and moss-draped forests, as well as glaciers, waterfalls and alpine lakes. Shorter day hikes and Bakonzo cultural trails make the park accessible to non-climbers. It became a UNESCO World Heritage Site in 1994.',
-                'how_to_get_there' => 'About 6–7 hours from Kampala to Kasese via Fort Portal, then to Nyakalengija or Kilembe trailheads. Flights to Kasese airstrip.',
-                'best_time' => 'June–August and December–February', 'best_months' => $dryA,
-                'interests' => ['hiking', 'remote', 'culture', 'birding', 'waterfalls'],
-                'difficulty_level' => 3, 'min_cost' => 120, 'min_days' => 2, 'area_km2' => 996, 'distance_from_kampala_km' => 375,
-                'established' => 1991, 'latitude' => 0.3500, 'longitude' => 29.9500, 'is_unesco' => true, 'theme' => 'mountain',
-                'activities' => [
-                    ['name' => 'Margherita Peak summit trek', 'category' => 'hiking', 'fitness_level' => 3, 'duration' => '7–9 days', 'indicative_cost' => 1200, 'description' => 'Technical climb to Africa\'s third-highest peak (packages via Rwenzori Mountaineering Services or Rwenzori Trekking Services).'],
-                    ['name' => 'Day hike to Lake Mahoma', 'category' => 'hiking', 'fitness_level' => 2, 'duration' => '1–2 days', 'indicative_cost' => 120, 'description' => 'Forest hike to a beautiful montane lake.'],
-                    ['name' => 'Bakonzo cultural trail', 'category' => 'culture', 'fitness_level' => 1, 'duration' => 'Half day', 'indicative_cost' => 30, 'description' => 'Visit villages at the foot of the mountains.'],
-                    ['name' => 'Montane forest birding', 'category' => 'birding', 'fitness_level' => 2, 'duration' => 'Half day', 'indicative_cost' => 30, 'description' => 'Rwenzori turaco and many Albertine Rift endemics.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Glacier view', 'theme' => 'mountain', 'description' => 'Snow and ice on the high peaks.', 'info' => [['Margherita Peak', '5,109 m – the third-highest summit in Africa.'], ['Retreating glaciers', 'The glaciers have shrunk significantly over the last century.']]],
-                    ['title' => 'Giant lobelia valley', 'theme' => 'mountain', 'description' => 'Afro-alpine vegetation zone.', 'info' => [['Giant plants', 'Lobelias and groundsels grow several metres tall here.']]],
-                    ['title' => 'Mubuku river forest', 'theme' => 'forest', 'description' => 'The start of the central circuit trail.', 'info' => [['Nyakalengija', 'Main trailhead for the central circuit.']]],
-                ],
-            ],
-            [
-                'name' => 'Kibale National Park', 'region' => 'Western', 'type' => 'national_park',
-                'tagline' => 'The primate capital of the world',
-                'description' => 'Kibale\'s lush tropical forest near Fort Portal holds one of the highest densities of primates on earth, including about 1,500 chimpanzees and 12 other primate species such as the red colobus and L\'Hoest\'s monkey. Chimpanzee tracking from Kanyanchu has very high success rates, and the full-day habituation experience lets visitors spend time with a community from dawn. Nearby Bigodi Wetland Sanctuary and the Fort Portal crater lakes complete the experience.',
-                'how_to_get_there' => 'About 5–6 hours from Kampala via Mubende and Fort Portal. Kanyanchu visitor centre is 35 km south-east of Fort Portal.',
-                'best_time' => 'June–September and December–February', 'best_months' => $dryB,
-                'interests' => ['chimpanzees', 'primates', 'birding', 'culture', 'hiking'],
-                'difficulty_level' => 2, 'min_cost' => 290, 'min_days' => 1, 'area_km2' => 795, 'distance_from_kampala_km' => 320,
-                'established' => 1993, 'latitude' => 0.4400, 'longitude' => 30.4000, 'is_unesco' => false, 'theme' => 'forest',
-                'activities' => [
-                    ['name' => 'Chimpanzee tracking', 'category' => 'primates', 'fitness_level' => 2, 'duration' => '3–4 hours', 'indicative_cost' => 250, 'description' => 'One hour with a habituated chimp community from Kanyanchu.'],
-                    ['name' => 'Chimpanzee habituation experience', 'category' => 'primates', 'fitness_level' => 3, 'duration' => 'Full day', 'indicative_cost' => 300, 'description' => 'Spend the whole day with researchers and a chimp community.'],
-                    ['name' => 'Bigodi Wetland Sanctuary walk', 'category' => 'birding', 'fitness_level' => 1, 'duration' => '3 hours', 'indicative_cost' => 20, 'description' => 'Community-run swamp walk – great blue turaco and primates.'],
-                    ['name' => 'Night forest walk', 'category' => 'nature', 'fitness_level' => 1, 'duration' => '2 hours', 'indicative_cost' => 40, 'description' => 'Find pottos, bush babies and nocturnal insects.'],
-                    ['name' => 'Crater lakes hike', 'category' => 'hiking', 'fitness_level' => 2, 'duration' => 'Half day', 'indicative_cost' => 15, 'description' => 'Explore the Ndali–Kasenda crater lakes near the park.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Kanyanchu forest', 'theme' => 'forest', 'description' => 'Tall forest where chimp tracking begins.', 'info' => [['13 primate species', 'Including chimpanzees, red colobus and grey-cheeked mangabey.'], ['High success', 'Chimp sightings exceed 90% on most days.']]],
-                    ['title' => 'Bigodi wetland', 'theme' => 'water', 'description' => 'Community-managed papyrus swamp.', 'info' => [['Community tourism', 'Revenue supports local schools and health.']]],
-                    ['title' => 'Crater lake viewpoint', 'theme' => 'mountain', 'description' => 'Crater lakes near Fort Portal.', 'info' => [['Top of the World', 'A viewpoint overlooking three crater lakes.']]],
-                ],
-            ],
-            [
-                'name' => 'Semuliki National Park', 'region' => 'Western', 'type' => 'national_park',
-                'tagline' => 'Boiling hot springs and Central African forest',
-                'description' => 'Semuliki protects the easternmost extension of the great Ituri Forest of the Congo Basin, making it one of Africa\'s most biodiverse forests and a paradise for birders, with over 440 species including many Central African specials. The famous Sempaya hot springs – the "male" Bitente and "female" Nyasimbi – bubble up at over 100°C. The park is also home to Batwa communities and the Semliki River that flows into Lake Albert.',
-                'how_to_get_there' => 'About 6–7 hours from Kampala via Fort Portal, then 52 km over the Rwenzori foothills to Sempaya.',
-                'best_time' => 'June–September and December–February', 'best_months' => $dryB,
-                'interests' => ['hot_springs', 'birding', 'primates', 'culture', 'remote'],
-                'difficulty_level' => 1, 'min_cost' => 65, 'min_days' => 1, 'area_km2' => 220, 'distance_from_kampala_km' => 380,
-                'established' => 1993, 'latitude' => 0.8300, 'longitude' => 30.1500, 'is_unesco' => false, 'theme' => 'forest',
-                'activities' => [
-                    ['name' => 'Sempaya hot springs walk', 'category' => 'nature', 'fitness_level' => 1, 'duration' => '1–2 hours', 'indicative_cost' => 30, 'description' => 'Boil an egg in the female hot spring.'],
-                    ['name' => 'Central African forest birding', 'category' => 'birding', 'fitness_level' => 2, 'duration' => 'Full day', 'indicative_cost' => 30, 'description' => 'Seek hornbills, Nkulengu rail and other Congo specials.'],
-                    ['name' => 'Kirumia river trail', 'category' => 'hiking', 'fitness_level' => 2, 'duration' => '8 hours', 'indicative_cost' => 30, 'description' => 'Long forest hike to the Semliki River.'],
-                    ['name' => 'Batwa community visit', 'category' => 'culture', 'fitness_level' => 1, 'duration' => '2 hours', 'indicative_cost' => 20, 'description' => 'Meet the Batwa of Ntandi.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Sempaya female hot spring', 'theme' => 'water', 'description' => 'Nyasimbi spring – a boiling geyser.', 'info' => [['Over 100°C', 'Water shoots up to 2 m into the air.'], ['Folklore', 'The Bamaga clan see the springs as sacred.']]],
-                    ['title' => 'Ituri forest edge', 'theme' => 'forest', 'description' => 'Lowland Congo-type forest.', 'info' => [['Birding hotspot', 'Over 440 bird species recorded.']]],
-                    ['title' => 'Semliki valley', 'theme' => 'savannah', 'description' => 'The Semliki valley towards Lake Albert.', 'info' => [['Semliki River', 'Flows north into Lake Albert along the DR Congo border.']]],
-                ],
-            ],
-            [
-                'name' => 'Mount Elgon National Park', 'region' => 'Eastern', 'type' => 'national_park',
-                'tagline' => 'One of the world\'s largest volcanic calderas',
-                'description' => 'Mount Elgon, an extinct volcano on the Uganda–Kenya border, has one of the largest calderas in the world. Trails from Budadiri, Kapkwai and Kapchorwa climb through bamboo forest and heather to Wagagai Peak (4,321 m) without technical skills. The slopes are dotted with caves, hot springs inside the caldera and the stunning Sipi Falls just outside the park, while the Bagisu and Sabiny cultures add depth to the visit.',
-                'how_to_get_there' => 'About 4–5 hours from Kampala via Jinja and Mbale to Budadiri, Kapkwai or Sipi.',
-                'best_time' => 'June–August and December–March', 'best_months' => [1, 2, 3, 6, 7, 8, 12],
-                'interests' => ['hiking', 'waterfalls', 'culture', 'birding', 'remote'],
-                'difficulty_level' => 3, 'min_cost' => 60, 'min_days' => 1, 'area_km2' => 1121, 'distance_from_kampala_km' => 235,
-                'established' => 1992, 'latitude' => 1.1333, 'longitude' => 34.5500, 'is_unesco' => false, 'theme' => 'mountain',
-                'activities' => [
-                    ['name' => 'Wagagai Peak summit hike', 'category' => 'hiking', 'fitness_level' => 3, 'duration' => '4–5 days', 'indicative_cost' => 300, 'description' => 'Non-technical trek to the caldera rim and summit.'],
-                    ['name' => 'Sipi Falls hike', 'category' => 'hiking', 'fitness_level' => 2, 'duration' => 'Half day', 'indicative_cost' => 25, 'description' => 'Visit the three tiers of Sipi Falls.'],
-                    ['name' => 'Kapkwai cave exploration', 'category' => 'nature', 'fitness_level' => 1, 'duration' => '2–3 hours', 'indicative_cost' => 30, 'description' => 'Walk to caves once used by elephants for salt.'],
-                    ['name' => 'Bugisu coffee & culture tour', 'category' => 'culture', 'fitness_level' => 1, 'duration' => '3 hours', 'indicative_cost' => 20, 'description' => 'Follow Arabica coffee from farm to cup.'],
-                    ['name' => 'Montane birding', 'category' => 'birding', 'fitness_level' => 2, 'duration' => 'Half day', 'indicative_cost' => 30, 'description' => 'Look for Jackson\'s francolin and the endemic Elgon francolin.'],
-                ],
-                'scenes' => [
-                    ['title' => 'Sipi Falls', 'theme' => 'water', 'description' => 'The main 100 m drop of Sipi Falls.', 'info' => [['Three waterfalls', 'Sipi has three tiers along the Sipi River.'], ['Coffee country', 'The slopes produce the famous Bugisu Arabica.']]],
-                    ['title' => 'Elgon caldera', 'theme' => 'mountain', 'description' => 'Inside the massive volcanic caldera.', 'info' => [['Caldera', 'Around 40 km across – one of the largest in the world.']]],
-                    ['title' => 'Bamboo zone', 'theme' => 'forest', 'description' => 'Bamboo forest on the Sasa trail.', 'info' => [['Sasa trail', 'Shortest but steepest route to the summit.']]],
-                ],
-            ],
+            ['slug' => 'kichumbanyobo-gate', 'name' => 'Kichumbanyobo Gate', 'type' => 'gate', 'zone' => 'south', 'latitude' => 1.9686, 'longitude' => 31.7860, 'opening_hours' => '07:00–19:00', 'description' => 'Main southern entrance for visitors from Kampala via Masindi. Pay UWA park entry here.'],
+            ['slug' => 'bugungu-gate', 'name' => 'Bugungu Gate', 'type' => 'gate', 'zone' => 'south', 'latitude' => 2.0060, 'longitude' => 31.5180, 'opening_hours' => '07:00–19:00', 'description' => 'Western entrance on the Butiaba/Hoima side, close to the Albert escarpment.'],
+            ['slug' => 'tangi-gate', 'name' => 'Tangi Gate', 'type' => 'gate', 'zone' => 'north', 'latitude' => 2.2690, 'longitude' => 32.0360, 'opening_hours' => '07:00–19:00', 'description' => 'Eastern entrance on the North Bank near Karuma, from the Kampala–Gulu highway.'],
+            ['slug' => 'chobe-gate', 'name' => 'Chobe Gate', 'type' => 'gate', 'zone' => 'north', 'latitude' => 2.2400, 'longitude' => 32.1500, 'opening_hours' => '07:00–19:00', 'description' => 'North-eastern entrance near Chobe on the Victoria Nile rapids.'],
+            ['slug' => 'wankwar-gate', 'name' => 'Wankwar Gate', 'type' => 'gate', 'zone' => 'north', 'latitude' => 2.5530, 'longitude' => 31.7680, 'opening_hours' => '07:00–19:00', 'description' => 'Northern entrance from Gulu and Purongo.'],
+            ['slug' => 'paraa-jetty', 'name' => 'Paraa Jetty & Ferry', 'type' => 'jetty', 'zone' => 'river', 'latitude' => 2.2843, 'longitude' => 31.5655, 'opening_hours' => 'Ferry 07:00–19:00 (see Travel Updates)', 'description' => 'Heart of the park on the Victoria Nile: launch cruises to the falls and the delta depart here and the ferry carries vehicles to the North Bank.', 'tip' => 'Arrive early for the first ferry if you plan a dawn game drive.'],
+            ['slug' => 'bakers-trail', 'name' => "Baker's Trail (falls hiking trail)", 'type' => 'trail', 'zone' => 'south', 'latitude' => 2.2772, 'longitude' => 31.6815, 'description' => 'Ranger-guided trail climbing from the launch drop-off at the base of the falls to the Top of the Falls. Named after explorer Sir Samuel Baker, who named the falls in 1864.', 'tip' => 'The rocks are wet from the spray — wear shoes with grip.'],
+            ['slug' => 'pakuba-airfield', 'name' => 'Pakuba Airfield', 'type' => 'airfield', 'zone' => 'north', 'latitude' => 2.3260, 'longitude' => 31.5000, 'description' => 'Airstrip on the North Bank with scheduled and charter flights from Entebbe and Kajjansi.'],
+            ['slug' => 'top-of-the-falls', 'name' => 'Top of the Falls', 'type' => 'attraction', 'zone' => 'south', 'latitude' => 2.2786, 'longitude' => 31.6857, 'description' => 'Viewpoint where the whole Nile squeezes through a 7 m gorge and drops 43 m. Short trails lead to several viewpoints.', 'tip' => 'Late afternoon light is best for photographs.'],
+            ['slug' => 'base-of-the-falls', 'name' => 'Base of the Falls', 'type' => 'attraction', 'zone' => 'river', 'latitude' => 2.2795, 'longitude' => 31.6760, 'description' => 'Turning point of the launch cruise, with hippos, crocodiles and spray from the falls.'],
+            ['slug' => 'buligi-game-tracks', 'name' => 'Buligi Game Tracks (North Bank)', 'type' => 'attraction', 'zone' => 'north', 'latitude' => 2.2450, 'longitude' => 31.4400, 'description' => "Open savannah between the Victoria and Albert Nile with the park's best game viewing.", 'tip' => 'Go at dawn, when predators are most active, and take a UWA ranger guide.'],
+            ['slug' => 'albert-delta', 'name' => 'Albert Nile Delta', 'type' => 'attraction', 'zone' => 'river', 'latitude' => 2.2800, 'longitude' => 31.4100, 'description' => 'Papyrus swamps where the Victoria Nile enters Lake Albert — one of the best shoebill sites in Africa.', 'tip' => 'Early launches give the best chance of seeing the shoebill.'],
+            ['slug' => 'budongo-kaniyo-pabidi', 'name' => 'Budongo Forest (Kaniyo Pabidi)', 'type' => 'forest', 'zone' => 'south', 'latitude' => 1.9200, 'longitude' => 31.7200, 'description' => 'Mahogany forest in the south of the conservation area with habituated chimpanzees.', 'tip' => 'Wear long trousers and boots; trails are muddy after rain.'],
+            ['slug' => 'paraa-uwa-bandas', 'name' => 'Paraa UWA Bandas & Campsite', 'type' => 'lodge', 'zone' => 'river', 'latitude' => 2.2820, 'longitude' => 31.5620, 'description' => 'Budget UWA accommodation near Paraa.'],
+            ['slug' => 'masindi-town', 'name' => 'Masindi Town', 'type' => 'town', 'zone' => 'route', 'latitude' => 1.6744, 'longitude' => 31.7150, 'description' => 'Last major town before Kichumbanyobo Gate: fuel, banks, mobile money and supermarkets.'],
+        ];
+    }
+
+    /** The seven research activities with UWA three-tier prices. */
+    private function activities(): array
+    {
+        return [
+            ['slug' => 'victoria-nile-boat-cruise', 'name' => 'Victoria Nile Boat Cruise to the Base of the Falls', 'category' => 'boat', 'place' => 'paraa-jetty', 'fitness_level' => 1, 'hours' => 3,
+                'price_fnr_usd' => 35, 'price_fr_usd' => 30, 'price_eac_ugx' => 30000, 'slots' => ['afternoon', 'morning'], 'interests' => ['boat', 'waterfalls', 'wildlife', 'birds', 'photography'], 'priority' => 10,
+                'description' => 'Three-hour launch from Paraa Jetty upstream to the foot of the falls, passing hippos, crocodiles, elephants and water birds.'],
+            ['slug' => 'north-bank-game-drive', 'name' => 'North Bank Game Drive (Buligi)', 'category' => 'game_drive', 'place' => 'buligi-game-tracks', 'fitness_level' => 1, 'hours' => 4,
+                'price_fnr_usd' => 0, 'price_fr_usd' => 0, 'price_eac_ugx' => 0, 'group_fee_usd' => 20, 'group_fee_ugx' => 20000, 'slots' => ['dawn', 'afternoon'], 'interests' => ['wildlife', 'photography'], 'priority' => 10,
+                'wet_season_note' => 'Some Buligi tracks get muddy in the rains; a 4x4 is recommended.',
+                'description' => 'Dawn drive on the Buligi tracks with a UWA ranger guide (fee per vehicle) to find lions, elephants, Rothschild\'s giraffes and antelopes.'],
+            ['slug' => 'hike-to-the-top-of-the-falls', 'name' => 'Hike to the Top of the Falls', 'category' => 'hiking', 'place' => 'bakers-trail', 'fitness_level' => 2, 'hours' => 2,
+                'price_fnr_usd' => 20, 'price_fr_usd' => 15, 'price_eac_ugx' => 15000, 'slots' => ['afternoon', 'evening', 'morning'], 'interests' => ['hiking', 'waterfalls', 'photography'], 'priority' => 9,
+                'wet_season_note' => 'The trail is slippery after rain.',
+                'description' => 'Ranger-guided climb along the gorge to the Top of the Falls, where the whole Nile thunders through a 7-metre gap.'],
+            ['slug' => 'budongo-chimpanzee-trekking', 'name' => 'Budongo Forest Chimpanzee Trekking', 'category' => 'primates', 'place' => 'budongo-kaniyo-pabidi', 'fitness_level' => 2, 'hours' => 4, 'min_age' => 12,
+                'price_fnr_usd' => 130, 'price_fr_usd' => 100, 'price_eac_ugx' => 100000, 'slots' => ['dawn', 'morning'], 'interests' => ['chimps', 'hiking', 'photography'], 'requires' => ['chimps'], 'priority' => 7,
+                'wet_season_note' => 'Forest trails are muddy in the rainy season; wear boots.',
+                'description' => 'Morning walk through Kaniyo Pabidi in Budongo Forest with a guide to find a habituated chimpanzee community (minimum age 12).'],
+            ['slug' => 'albert-delta-shoebill-birding', 'name' => 'Albert Delta Shoebill Birding Cruise', 'category' => 'birding', 'place' => 'albert-delta', 'fitness_level' => 1, 'hours' => 4,
+                'price_fnr_usd' => 50, 'price_fr_usd' => 40, 'price_eac_ugx' => 40000, 'slots' => ['dawn', 'morning'], 'interests' => ['birds', 'boat', 'photography'], 'priority' => 6,
+                'description' => 'Boat cruise downstream from Paraa to the papyrus delta at Lake Albert in search of the shoebill and other water birds.'],
+            ['slug' => 'sport-fishing', 'name' => 'Sport Fishing below the Falls', 'category' => 'fishing', 'place' => 'base-of-the-falls', 'fitness_level' => 2, 'hours' => 4,
+                'price_fnr_usd' => 50, 'price_fr_usd' => 40, 'price_eac_ugx' => 50000, 'slots' => ['morning', 'afternoon'], 'interests' => ['fishing'], 'requires' => ['fishing'], 'priority' => 3,
+                'description' => 'Catch-and-release fishing for Nile perch and tigerfish with a licensed guide (UWA sport-fishing permit per day).'],
+            ['slug' => 'night-game-drive', 'name' => 'Night Game Drive', 'category' => 'game_drive', 'place' => 'buligi-game-tracks', 'fitness_level' => 1, 'hours' => 2,
+                'price_fnr_usd' => 30, 'price_fr_usd' => 25, 'price_eac_ugx' => 30000, 'slots' => ['night'], 'interests' => ['night', 'wildlife', 'photography'], 'priority' => 4,
+                'description' => 'Ranger-led spotlight drive on the North Bank after dark for leopards, hyenas, bush babies and nightjars.'],
+        ];
+    }
+
+    private function sceneInfo(): array
+    {
+        return [
+            'victoria-nile-boat-cruise' => ['Victoria Nile launch at Paraa', 'Launch cruise to the base of the falls.', [['Launch cruise', 'Three-hour cruise to the base of the falls — hippos, crocodiles and elephants along the banks.'], ['Paraa Jetty', 'Cruises leave at about 09:00 and 14:00; check Travel Updates for today\'s schedule.']]],
+            'north-bank-game-drive' => ['Buligi grasslands (North Bank)', 'Borassus palms and giraffe country.', [['Game drive', 'Dawn drives give the best chance of lions; hire a UWA ranger guide at Paraa.'], ['Rothschild\'s giraffe', 'Murchison holds one of the largest populations of this subspecies.']]],
+            'hike-to-the-top-of-the-falls' => ['Top of Murchison Falls', 'The Nile forces its way through a 7 m wide gap.', [['Hike to the top', 'Climb Baker\'s Trail from the launch drop-off to the top of the falls with a ranger.'], ['Power of the Nile', 'Around 300 m³ of water a second pass through the gorge. Uhuru Falls formed beside it after the 1962 floods.']]],
+            'budongo-chimpanzee-trekking' => ['Budongo Forest – Kaniyo Pabidi', 'Mahogany forest with habituated chimpanzees.', [['Chimpanzee trekking', 'Morning treks with a guide; one hour with the chimps. Minimum age 12.'], ['Forest rules', 'Keep 8 m away, no eating near the chimps, do not trek if you have a cold.']]],
+            'albert-delta-shoebill-birding' => ['Albert Nile Delta papyrus', 'Where the Nile meets Lake Albert.', [['Shoebill cruise', 'Four-hour early cruise downstream from Paraa in search of the shoebill.'], ['Birding', 'Over 450 bird species have been recorded in the park.']]],
+            'sport-fishing' => ['Below the Falls – fishing spot', 'Nile perch water below the cascades.', [['Sport fishing', 'Catch-and-release with a UWA permit and licensed guide.']]],
+            'night-game-drive' => ['North Bank at dusk', 'Start point of ranger-led night drives.', [['Night game drive', 'Spotlight drive for leopards, hyenas and bush babies with a UWA ranger.']]],
         ];
     }
 }

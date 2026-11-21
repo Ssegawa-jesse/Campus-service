@@ -9,7 +9,7 @@ use App\Models\Operator;
 use App\Models\Park;
 use App\Models\Payment;
 use App\Models\Scene;
-use App\Models\TripPlan;
+use App\Models\Itinerary;
 use App\Models\User;
 use App\Models\ViewLog;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ class DashboardController extends Controller
 
         // Popular interests from all trip-planner submissions
         $interests = [];
-        TripPlan::pluck('preferences')->each(function ($p) use (&$interests) {
+        Itinerary::pluck('input')->each(function ($p) use (&$interests) {
             foreach ($p['interests'] ?? [] as $i) {
                 $interests[$i] = ($interests[$i] ?? 0) + 1;
             }
@@ -47,13 +47,13 @@ class DashboardController extends Controller
                 'views' => ViewLog::count(),
                 'bookings' => Booking::count(),
                 'revenue' => (int) Payment::where('status', 'successful')->sum('amount'),
-                'plans' => TripPlan::count(),
+                'plans' => Itinerary::count(),
             ],
             'parkViews' => Park::orderByDesc('views_count')->get(['name', 'views_count']),
             'topScenes' => Scene::with('park:id,name')->orderByDesc('views_count')->take(8)->get(),
             'bookingsPerPark' => Park::withCount('bookings')->orderByDesc('bookings_count')->get(['id', 'name']),
             'statusBreakdown' => Booking::select('status', DB::raw('count(*) as total'))->groupBy('status')->pluck('total', 'status'),
-            'interests' => collect($interests)->mapWithKeys(fn ($v, $k) => [Park::INTERESTS[$k] ?? $k => $v]),
+            'interests' => collect($interests)->mapWithKeys(fn ($v, $k) => [config('murchison.interests')[$k] ?? $k => $v]),
             'trend' => $trend,
             'recentBookings' => Booking::with('tourist', 'park', 'operator')->latest()->take(6)->get(),
             'pendingOperators' => Operator::pending()->with('user')->latest()->get(),

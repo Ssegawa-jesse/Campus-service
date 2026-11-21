@@ -1,0 +1,8 @@
+/vendor
+/node_modules
+/murchison-smart-tourism
+/docs
+/tests
+/storage/logs/*
+/database/database.sqlite
+.env

@@ -9,7 +9,7 @@ use App\Http\Controllers\ParkController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\Tourist;
-use App\Http\Controllers\TripPlannerController;
+use App\Http\Controllers\Smart;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,19 +18,45 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/map', [HomeController::class, 'map'])->name('map');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::post('/contact', [HomeController::class, 'sendContact'])->name('contact.send')->middleware('throttle:5,1');
 
-Route::get('/parks', [ParkController::class, 'index'])->name('parks.index');
-Route::get('/parks/compare', [ParkController::class, 'compare'])->name('parks.compare');
+// Research scope: Murchison Falls National Park only
+Route::get('/parks', fn () => redirect()->route('park'));
+Route::get('/park', [ParkController::class, 'murchison'])->name('park');
 Route::get('/parks/{park}', [ParkController::class, 'show'])->name('parks.show');
-Route::get('/parks/{park}/tour', [TourController::class, 'show'])->name('tour.show');
+Route::get('/parks/{park}/tour', fn () => redirect()->route('explore'))->name('tour.show');
 Route::post('/scenes/{scene}/view', [TourController::class, 'logScene'])->name('tour.scene-view')->middleware('throttle:60,1');
 
-Route::get('/planner', [TripPlannerController::class, 'index'])->name('planner.index');
-Route::match(['get', 'post'], '/planner/results', [TripPlannerController::class, 'results'])->name('planner.results');
+/*
+| The six Smart Trip Planning modules (supervisor's reference architecture)
+*/
+// 1. Smart Itinerary (primary target)
+Route::get('/itinerary', [Smart\ItineraryController::class, 'index'])->name('itinerary.index');
+Route::match(['get', 'post'], '/itinerary/generate', [Smart\ItineraryController::class, 'generate'])->name('itinerary.generate');
+Route::post('/itinerary/add/{activity}', [Smart\ItineraryController::class, 'add'])->name('itinerary.add');
+Route::post('/itinerary/remove/{activity}', [Smart\ItineraryController::class, 'remove'])->name('itinerary.remove');
+Route::middleware('auth')->group(function () {
+    Route::post('/itinerary/save', [Smart\ItineraryController::class, 'save'])->name('itinerary.save');
+    Route::get('/itinerary/{itinerary}', [Smart\ItineraryController::class, 'show'])->name('itinerary.show');
+    Route::delete('/itinerary/{itinerary}', [Smart\ItineraryController::class, 'destroy'])->name('itinerary.destroy');
+    Route::post('/itinerary/{itinerary}/book', [Smart\ItineraryController::class, 'book'])->name('itinerary.book')->middleware('role:tourist');
+});
+Route::get('/planner', fn () => redirect()->route('itinerary.index'))->name('planner.index');
+// 2. Travel Budgeting
+Route::get('/budget', [Smart\BudgetController::class, 'index'])->name('budget');
+// 3. Smart Navigation
+Route::get('/navigate', [Smart\NavigationController::class, 'index'])->name('navigate');
+Route::get('/navigate/route', [Smart\NavigationController::class, 'route'])->name('navigate.route')->middleware('throttle:120,1');
+Route::get('/map', fn () => redirect()->route('navigate'))->name('map');
+// 4. AI Travel Assistant
+Route::get('/assistant', [Smart\AssistantController::class, 'index'])->name('assistant');
+Route::post('/assistant/ask', [Smart\AssistantController::class, 'ask'])->name('assistant.ask')->middleware('throttle:30,1');
+// 5. Travel Updates
+Route::get('/updates', [Smart\UpdatesController::class, 'index'])->name('updates');
+// 6. Virtual Exploration (HP5 360°)
+Route::get('/explore', [Smart\ExploreController::class, 'index'])->name('explore');
 
 Route::get('/packages', [PackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{package}', [PackageController::class, 'show'])->name('packages.show');
@@ -81,8 +107,6 @@ Route::middleware(['auth', 'role:tourist'])->group(function () {
 Route::middleware(['auth', 'role:tourist'])->prefix('my')->name('tourist.')->group(function () {
     Route::get('/', [Tourist\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/favourites/{park}', [Tourist\DashboardController::class, 'toggleFavourite'])->name('favourites.toggle');
-    Route::post('/plans', [Tourist\DashboardController::class, 'savePlan'])->name('plans.store');
-    Route::delete('/plans/{plan}', [Tourist\DashboardController::class, 'deletePlan'])->name('plans.destroy');
 
     Route::get('/bookings', [Tourist\BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/new', [Tourist\BookingController::class, 'create'])->name('bookings.create');
@@ -155,6 +179,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reviews', [Admin\ReviewController::class, 'index'])->name('reviews.index');
     Route::post('/reviews/{review}/toggle', [Admin\ReviewController::class, 'toggle'])->name('reviews.toggle');
     Route::delete('/reviews/{review}', [Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Smart Trip Planning CMS
+    Route::resource('travel-updates', Admin\TravelUpdateController::class)->except('show');
+    Route::resource('places', Admin\PlaceController::class)->except('show');
+    Route::get('/uwa-activities', [Admin\UwaActivityController::class, 'index'])->name('uwa-activities.index');
+    Route::post('/uwa-activities', [Admin\UwaActivityController::class, 'store'])->name('uwa-activities.store');
+    Route::put('/uwa-activities/{activity}', [Admin\UwaActivityController::class, 'update'])->name('uwa-activities.update');
+    Route::get('/studio', [Admin\SceneController::class, 'studio'])->name('studio');
+    Route::put('/hotspots/{hotspot}', [Admin\SceneController::class, 'updateHotspot'])->name('hotspots.update');
+    Route::get('/notifications', [Admin\NotificationLogController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/test', [Admin\NotificationLogController::class, 'test'])->name('notifications.test');
+    Route::get('/assistant-logs', [Admin\NotificationLogController::class, 'assistant'])->name('assistant-logs');
+    Route::get('/itineraries', [Admin\NotificationLogController::class, 'itineraries'])->name('itineraries.index');
 
     Route::get('/sms', [Admin\SmsController::class, 'index'])->name('sms.index');
     Route::post('/sms', [Admin\SmsController::class, 'send'])->name('sms.send');

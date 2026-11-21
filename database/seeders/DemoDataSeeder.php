@@ -8,7 +8,6 @@ use App\Models\Payment;
 use App\Models\Review;
 use App\Models\Scene;
 use App\Models\TourPackage;
-use App\Models\TripPlan;
 use App\Models\User;
 use App\Models\ViewLog;
 use Illuminate\Database\Seeder;
@@ -54,16 +53,19 @@ class DemoDataSeeder extends Seeder
             $scene->update(['views_count' => ViewLog::where('scene_id', $scene->id)->count()]);
         }
 
-        // Trip planner submissions
-        $interestKeys = array_keys(Park::INTERESTS);
-        for ($i = 0; $i < 40; $i++) {
-            $picked = collect($interestKeys)->shuffle()->take(mt_rand(1, 3))->values()->all();
-            TripPlan::create([
-                'user_id' => mt_rand(0, 1) ? $tourists->random()->id : null,
-                'title' => 'Trip plan',
-                'preferences' => ['interests' => $picked, 'fitness' => mt_rand(1, 3), 'budget' => mt_rand(3, 20) * 100, 'days' => mt_rand(2, 10), 'month' => mt_rand(1, 12)],
-                'recommended_parks' => [],
-                'created_at' => now()->subDays(mt_rand(0, 180)),
+        // Smart Itinerary submissions (generated with the real engine)
+        $engine = app(\App\Services\Murchison\ItineraryEngine::class);
+        $interestKeys = array_keys(config('murchison.interests'));
+        for ($i = 0; $i < 15; $i++) {
+            $input = ['start_date' => now()->addDays(mt_rand(5, 120))->toDateString(), 'days' => mt_rand(2, 5), 'adults' => mt_rand(1, 4),
+                'category' => ['fnr', 'fr', 'eac'][mt_rand(0, 2)], 'interests' => collect($interestKeys)->shuffle()->take(mt_rand(2, 4))->values()->all(),
+                'tier' => ['budget', 'mid', 'luxury'][mt_rand(0, 2)]];
+            $plan = $engine->build($input);
+            \App\Models\Itinerary::create([
+                'user_id' => $tourists->random()->id, 'title' => $plan['input']['days'].'-day Murchison Falls trip',
+                'start_date' => $plan['input']['start_date'], 'days' => $plan['input']['days'], 'visitor_category' => $plan['input']['category'],
+                'adults' => $plan['input']['adults'], 'children' => 0, 'input' => $plan['input'], 'plan' => $plan,
+                'total_ugx' => $plan['budget']['total'], 'created_at' => now()->subDays(mt_rand(0, 90)),
             ]);
         }
 
@@ -78,7 +80,7 @@ class DemoDataSeeder extends Seeder
             $group = mt_rand(1, 5);
 
             $booking = Booking::create([
-                'reference' => 'P360-'.strtoupper(Str::random(6)),
+                'reference' => 'MFNP-'.strtoupper(Str::random(6)),
                 'tourist_id' => $tourist->id,
                 'operator_id' => $package->operator_id,
                 'park_id' => $package->park_id,
@@ -99,7 +101,7 @@ class DemoDataSeeder extends Seeder
                 $method = ['mobile_money_mtn', 'mobile_money_airtel', 'card'][mt_rand(0, 2)];
                 Payment::create([
                     'booking_id' => $booking->id, 'user_id' => $tourist->id,
-                    'tx_ref' => 'P360-TX-'.strtoupper(Str::random(10)), 'gateway' => 'simulate', 'method' => $method,
+                    'tx_ref' => 'MFNP-TX-'.strtoupper(Str::random(10)), 'gateway' => 'simulate', 'method' => $method,
                     'phone' => $tourist->phone, 'amount' => $booking->quoted_amount, 'currency' => 'UGX',
                     'status' => 'successful', 'gateway_reference' => 'SIM-'.strtoupper(Str::random(8)),
                     'paid_at' => $created->copy()->addDay(), 'created_at' => $created->copy()->addDay(),
@@ -114,7 +116,7 @@ class DemoDataSeeder extends Seeder
             'Well organised trip. Roads were a bit rough but totally worth it.',
             'Saw so much wildlife. Highly recommend the boat cruise.',
             'Breathtaking scenery. Bring good hiking boots!',
-            'Great value and the booking through Pearl360 was easy with Mobile Money.',
+            'Great value and the booking through the platform was easy with Mobile Money.',
         ];
         foreach ($parks as $park) {
             foreach ($tourists->random(min(3, $tourists->count())) as $t) {

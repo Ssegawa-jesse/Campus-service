@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="MUBS logo placeholder">
+  <title>MUBS logo placeholder – replace with the official Makerere University Business School logo</title>
+  <circle cx="60" cy="60" r="57" fill="#ffffff" stroke="#7a1f2b" stroke-width="5"/>
+  <circle cx="60" cy="60" r="47" fill="none" stroke="#c9a227" stroke-width="2" stroke-dasharray="4 3"/>
+  <path d="M38 44 L60 32 L82 44 L60 56 Z" fill="#7a1f2b"/>
+  <path d="M44 50 v12 c0 6 32 6 32 0 v-12 l-16 8 z" fill="#7a1f2b" opacity=".85"/>
+  <text x="60" y="84" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="19" fill="#7a1f2b">MUBS</text>
+  <text x="60" y="97" text-anchor="middle" font-family="Arial, sans-serif" font-size="6.5" fill="#555">LOGO PLACEHOLDER</text>
+</svg>

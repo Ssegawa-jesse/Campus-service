@@ -68,6 +68,12 @@ class Park extends Model
         return $this->hasMany(Activity::class);
     }
 
+    /** The single park this platform is scoped to. */
+    public static function murchison(): self
+    {
+        return static::where('slug', config('murchison.park_slug'))->firstOrFail();
+    }
+
     public function scenes(): HasMany
     {
         return $this->hasMany(Scene::class)->orderBy('sort_order');

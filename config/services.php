@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // AI Travel Assistant (optional). Without a key the built-in knowledge base answers.
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+    ],
+
 ];

@@ -9,11 +9,16 @@ class ParkMedia extends Model
 {
     protected $table = 'park_media';
 
-    protected $fillable = ['park_id', 'type', 'path', 'caption', 'credit', 'sort_order'];
+    protected $fillable = ['park_id', 'activity_id', 'type', 'path', 'caption', 'credit', 'sort_order'];
 
     public function park(): BelongsTo
     {
         return $this->belongsTo(Park::class);
+    }
+
+    public function activity(): BelongsTo
+    {
+        return $this->belongsTo(Activity::class);
     }
 
     public function url(): string

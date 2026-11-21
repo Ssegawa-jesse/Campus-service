@@ -9,17 +9,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Scene extends Model
 {
     protected $fillable = [
-        'park_id', 'title', 'image_path', 'description', 'initial_pitch', 'initial_yaw', 'audio_path', 'sort_order',
+        'park_id', 'activity_id', 'title', 'image_path', 'camera', 'captured_on', 'is_published', 'description', 'initial_pitch', 'initial_yaw', 'audio_path', 'sort_order',
     ];
 
     protected function casts(): array
     {
-        return ['initial_pitch' => 'float', 'initial_yaw' => 'float'];
+        return ['initial_pitch' => 'float', 'initial_yaw' => 'float', 'captured_on' => 'date', 'is_published' => 'boolean'];
     }
 
     public function park(): BelongsTo
     {
         return $this->belongsTo(Park::class);
+    }
+
+    public function activity(): BelongsTo
+    {
+        return $this->belongsTo(Activity::class);
     }
 
     public function hotspots(): HasMany

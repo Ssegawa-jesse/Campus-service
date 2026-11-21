@@ -13,6 +13,7 @@
         <div class="col-md-4"><label class="form-label">Video file <small class="text-muted">(MP4, max 100 MB)</small></label><input type="file" name="video" accept="video/*" class="form-control"></div>
         <div class="col-md-4"><label class="form-label">…or YouTube link</label><input name="youtube" class="form-control" placeholder="https://youtu.be/…"></div>
         <div class="col-md-6"><input name="caption" class="form-control" placeholder="Caption (optional)"></div>
+        <div class="col-md-6"><select name="activity_id" class="form-select"><option value="">— Activity (optional) —</option>@foreach (\App\Models\Activity::orderBy('name')->get() as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach</select></div>
         <div class="col-md-4"><input name="credit" class="form-control" placeholder="Photo credit, e.g. UWA / Group 12"></div>
         <div class="col-md-2 d-grid"><button class="btn btn-gold"><i class="bi bi-upload"></i> Upload</button></div>
     </form>
@@ -34,6 +35,7 @@
                     <form method="POST" action="{{ route('admin.media.update', $m) }}" class="row g-1">
                         @csrf @method('PUT')
                         <div class="col-12"><input name="caption" value="{{ $m->caption }}" class="form-control form-control-sm" placeholder="Caption"></div>
+                        <div class="col-12 small text-muted">{{ $m->activity?->name ?? 'General park media' }}</div>
                         <div class="col-8"><input name="credit" value="{{ $m->credit }}" class="form-control form-control-sm" placeholder="Credit"></div>
                         <div class="col-4"><input type="number" name="sort_order" value="{{ $m->sort_order }}" class="form-control form-control-sm" title="Order"></div>
                         @if ($m->type === 'image')<div class="col-12 form-check ms-1"><input type="checkbox" name="make_cover" value="1" class="form-check-input" id="c{{ $m->id }}" @checked($park->cover_image === $m->path)><label for="c{{ $m->id }}" class="form-check-label small">Use as cover photo</label></div>@endif

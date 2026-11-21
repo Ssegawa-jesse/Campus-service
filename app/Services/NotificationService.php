@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\SystemNotification;
 use App\Models\Booking;
+use App\Models\EmailLog;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\Sms\SmsService;
@@ -45,7 +46,7 @@ class NotificationService
                 "{$company} ({$user->name}, {$user->email}, {$user->phone}) registered as a tour operator.",
                 'Open the admin dashboard to approve or reject them.',
             ], route('admin.operators.index', ['status' => 'pending']), 'Review now',
-                "Pearl360: new operator {$company} is awaiting your approval.");
+                "MFNP: new operator {$company} is awaiting your approval.");
         } else {
             $this->notifyAdmins('New tourist registered', [
                 "{$user->name} ({$user->email}) created a tourist account.",
@@ -63,14 +64,14 @@ class NotificationService
             $b->message ? "Message: {$b->message}" : null,
             'Please respond with a quote from your operator dashboard.',
         ], route('operator.bookings.show', $b), 'Respond now');
-        $this->sms->send($b->operator->contact_phone, "Pearl360: new enquiry {$b->reference} for {$b->park->name}, {$b->travel_date->format('d M')}, {$b->group_size} pax. Log in to send a quote.");
+        $this->sms->send($b->operator->contact_phone, "MFNP: new enquiry {$b->reference} for {$b->park->name}, {$b->travel_date->format('d M')}, {$b->group_size} pax. Log in to send a quote.");
 
         $this->email($b->tourist->email, "Enquiry {$b->reference} sent", [
             "Your enquiry to {$b->operator->company_name} for {$b->park->name} has been sent. You will get an SMS and email when they reply with a quote.",
         ], route('tourist.bookings.show', $b), 'View booking');
-        $this->smsUser($b->tourist, "Pearl360: enquiry {$b->reference} sent to {$b->operator->company_name}. We'll notify you when they reply.");
+        $this->smsUser($b->tourist, "MFNP: enquiry {$b->reference} sent to {$b->operator->company_name}. We'll notify you when they reply.");
 
-        $this->notifyAdmins(null, [], null, null, "Pearl360 admin: new enquiry {$b->reference} ({$b->park->name}) by {$b->tourist->name}.");
+        $this->notifyAdmins(null, [], null, null, "MFNP admin: new enquiry {$b->reference} ({$b->park->name}) by {$b->tourist->name}.");
     }
 
     public function bookingUpdated(Booking $booking): void
@@ -90,7 +91,7 @@ class NotificationService
             $text,
             $b->operator_response ? "Operator note: {$b->operator_response}" : null,
         ], route('tourist.bookings.show', $b), $b->status === 'quoted' ? 'Pay now' : 'View booking');
-        $this->smsUser($b->tourist, "Pearl360 {$b->reference}: {$text}");
+        $this->smsUser($b->tourist, "MFNP {$b->reference}: {$text}");
     }
 
     public function bookingCancelled(Booking $booking): void
@@ -99,7 +100,7 @@ class NotificationService
         $this->email($booking->operator->contact_email, "Booking {$booking->reference} cancelled", [
             "{$booking->tourist->name} cancelled the booking for {$booking->park->name}.",
         ], route('operator.bookings.show', $booking), 'View booking');
-        $this->sms->send($booking->operator->contact_phone, "Pearl360: booking {$booking->reference} was cancelled by the tourist.");
+        $this->sms->send($booking->operator->contact_phone, "MFNP: booking {$booking->reference} was cancelled by the tourist.");
     }
 
     public function paymentReceived(Payment $payment): void
@@ -112,16 +113,16 @@ class NotificationService
             "Transaction reference: {$payment->tx_ref}",
             "{$b->operator->company_name} will now confirm your trip.",
         ], route('tourist.bookings.show', $b), 'View receipt');
-        $this->smsUser($b->tourist, "Pearl360: payment of {$amount} received for {$b->reference}. Ref {$payment->tx_ref}. Thank you!");
+        $this->smsUser($b->tourist, "MFNP: payment of {$amount} received for {$b->reference}. Ref {$payment->tx_ref}. Thank you!");
 
         $this->email($b->operator->contact_email, "Booking {$b->reference} has been paid", [
             "{$b->tourist->name} paid {$amount}. Please confirm the trip.",
         ], route('operator.bookings.show', $b), 'Confirm trip');
-        $this->sms->send($b->operator->contact_phone, "Pearl360: {$b->reference} PAID {$amount}. Please confirm the trip.");
+        $this->sms->send($b->operator->contact_phone, "MFNP: {$b->reference} PAID {$amount}. Please confirm the trip.");
 
         $this->notifyAdmins("Payment received {$amount}", [
             "Booking {$b->reference} ({$b->park->name}) paid via {$payment->methodLabel()}.",
-        ], route('admin.payments.index'), 'View payments', "Pearl360 admin: {$amount} received for {$b->reference}.");
+        ], route('admin.payments.index'), 'View payments', "MFNP admin: {$amount} received for {$b->reference}.");
     }
 
     public function operatorVerified(\App\Models\Operator $operator): void
@@ -129,7 +130,7 @@ class NotificationService
         $this->email($operator->contact_email, 'Your operator account is approved', [
             "Congratulations! {$operator->company_name} has been approved on ".config('pearl360.name').'. Your packages are now visible and tourists can send you booking enquiries.',
         ], route('operator.dashboard'), 'Open dashboard');
-        $this->sms->send($operator->contact_phone, "Pearl360: {$operator->company_name} is now APPROVED. You can receive bookings.");
+        $this->sms->send($operator->contact_phone, "MFNP: {$operator->company_name} is now APPROVED. You can receive bookings.");
     }
 
     public function operatorRejected(\App\Models\Operator $operator): void
@@ -139,7 +140,7 @@ class NotificationService
             $operator->rejection_reason ? "Reason: {$operator->rejection_reason}" : null,
             'Update your company profile (licence number, contacts, parks served) and contact us to be reviewed again.',
         ], route('operator.profile.edit'), 'Update profile');
-        $this->sms->send($operator->contact_phone, "Pearl360: {$operator->company_name} was not approved. Check your email for the reason.");
+        $this->sms->send($operator->contact_phone, "MFNP: {$operator->company_name} was not approved. Check your email for the reason.");
     }
 
     public function contactReceived(array $data): void
@@ -180,16 +181,35 @@ class NotificationService
         }
     }
 
+    public function sendTestEmail(string $to): void
+    {
+        $this->email($to, 'Test email – '.config('pearl360.name'), ['This is a test email from the Murchison Falls Smart Trip Planning platform notification simulator.', 'Sent at '.now()->format('j M Y H:i').'.'], route('home'), 'Open platform');
+    }
+
+    public function sms(): SmsService
+    {
+        return $this->sms;
+    }
+
     private function email(?string $to, string $subject, array $lines, ?string $url = null, ?string $action = null): void
     {
         if (! $to) {
             return;
         }
 
+        $lines = array_values(array_filter($lines));
+        $log = null;
         try {
-            Mail::to($to)->send(new SystemNotification($subject, array_values(array_filter($lines)), $url, $action));
+            $log = EmailLog::create(['to' => $to, 'subject' => $subject, 'body' => implode("\n", $lines).($url ? "\n{$url}" : ''), 'status' => 'queued']);
+        } catch (\Throwable) {
+            // email_logs table missing (not migrated yet) – keep sending
+        }
+        try {
+            Mail::to($to)->send(new SystemNotification($subject, $lines, $url, $action));
+            $log?->update(['status' => in_array(config('mail.default'), ['log', 'array'], true) ? 'logged' : 'sent']);
         } catch (\Throwable $e) {
             Log::warning('Email failed: '.$e->getMessage());
+            $log?->update(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 1000)]);
         }
     }
 }

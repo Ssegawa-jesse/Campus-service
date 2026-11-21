@@ -23,12 +23,13 @@ class MediaController extends Controller
             'video' => 'nullable|file|mimetypes:video/mp4,video/webm,video/quicktime|max:102400',
             'youtube' => 'nullable|url|max:255',
             'caption' => 'nullable|string|max:200',
+            'activity_id' => 'nullable|exists:activities,id',
             'credit' => 'nullable|string|max:120',
         ]);
 
         $order = (int) $park->media()->max('sort_order');
         $count = 0;
-        $meta = ['caption' => $request->input('caption'), 'credit' => $request->input('credit')];
+        $meta = ['caption' => $request->input('caption'), 'credit' => $request->input('credit'), 'activity_id' => $request->input('activity_id') ?: null];
 
         foreach ($request->file('photos', []) as $photo) {
             $park->media()->create($meta + ['type' => 'image', 'path' => $this->storeUpload($photo, 'gallery/'.$park->slug), 'sort_order' => ++$order]);

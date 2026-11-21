@@ -96,6 +96,11 @@ class User extends Authenticatable
         return $this->hasMany(TripPlan::class);
     }
 
+    public function itineraries(): HasMany
+    {
+        return $this->hasMany(Itinerary::class);
+    }
+
     public function favourites(): BelongsToMany
     {
         return $this->belongsToMany(Park::class, 'favourites')->withTimestamps();

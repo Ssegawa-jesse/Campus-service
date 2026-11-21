@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-head">
     <h1>Hello, {{ Str::words($user->name, 1, '') }} 👋</h1>
-    <a href="{{ route('planner.index') }}" class="btn btn-gold"><i class="bi bi-magic"></i> Plan a new trip</a>
+    <a href="{{ route('itinerary.index') }}" class="btn btn-gold"><i class="bi bi-calendar2-week"></i> New Smart Itinerary</a>
 </div>
 
 @foreach ($actionNeeded as $b)
@@ -16,7 +16,7 @@
 @endforeach
 
 <div class="row g-3 mb-4">
-    @foreach ([['bookings', 'Bookings', 'calendar-check'], ['paid', 'Paid trips', 'cash-coin'], ['favourites', 'Saved parks', 'heart'], ['reviews', 'Reviews written', 'star']] as [$k, $l, $i])
+    @foreach ([['bookings', 'Bookings', 'calendar-check'], ['paid', 'Paid trips', 'cash-coin'], ['itineraries', 'Smart itineraries', 'calendar2-week'], ['reviews', 'Reviews written', 'star']] as [$k, $l, $i])
         <div class="col-6 col-md-3"><div class="kpi"><i class="bi bi-{{ $i }}"></i><div class="value">{{ $stats[$k] }}</div><div class="label">{{ $l }}</div></div></div>
     @endforeach
 </div>
@@ -35,48 +35,26 @@
     </div>
 </div>
 
-<h5>Saved parks</h5>
-<div class="row g-3 mb-4">
-    @forelse ($favourites as $park)
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <img src="{{ $park->coverUrl() }}" class="card-img-top" style="height:110px;object-fit:cover" alt="">
-                <div class="card-body py-2">
-                    <a href="{{ route('parks.show', $park) }}" class="fw-semibold text-reset">{{ $park->name }}</a>
-                    <div class="d-flex gap-2 mt-2">
-                        <a href="{{ route('tour.show', $park) }}" class="btn btn-sm btn-forest">360°</a>
-                        <form method="POST" action="{{ route('tourist.favourites.toggle', $park) }}">@csrf<button class="btn btn-sm btn-outline-danger"><i class="bi bi-heart-fill"></i></button></form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @empty
-        <p class="text-muted">Tap <i class="bi bi-heart"></i> Save on any park to keep it here.</p>
-    @endforelse
-</div>
-
-<h5>My trip plans</h5>
+<h5>My Smart Itineraries</h5>
 <div class="row g-3">
-    @forelse ($plans as $plan)
+    @forelse ($itineraries as $it)
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <h6>{{ $plan->title }}</h6>
-                        <form method="POST" action="{{ route('tourist.plans.destroy', $plan) }}" data-confirm="Delete this plan?">@csrf @method('DELETE')<button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button></form>
-                    </div>
-                    <div class="small text-muted mb-2">{{ $plan->created_at->format('d M Y') }} · {{ collect($plan->preferences['interests'] ?? [])->map(fn ($i) => \App\Models\Park::INTERESTS[$i] ?? $i)->implode(', ') }}</div>
-                    <ol class="small mb-2 ps-3">@foreach (array_slice($plan->recommended_parks, 0, 3) as $r)<li>{{ $r['name'] }} <span class="text-muted">({{ $r['score'] }}%)</span></li>@endforeach</ol>
-                    <form method="POST" action="{{ route('planner.results') }}">@csrf
-                        @foreach ($plan->preferences['interests'] ?? [] as $i)<input type="hidden" name="interests[]" value="{{ $i }}">@endforeach
-                        @foreach (['fitness', 'budget', 'days', 'month'] as $k)@if (isset($plan->preferences[$k]))<input type="hidden" name="{{ $k }}" value="{{ $plan->preferences[$k] }}">@endif @endforeach
-                        <button class="btn btn-sm btn-outline-forest">Re-run plan</button>
-                    </form>
+            <div class="card border-0 shadow-sm h-100"><div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h6><a href="{{ route('itinerary.show', $it) }}" class="text-reset">{{ $it->title }}</a></h6>
+                    @unless ($it->bookings_count)
+                        <form method="POST" action="{{ route('itinerary.destroy', $it) }}" data-confirm="Delete this itinerary?">@csrf @method('DELETE')<button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash"></i></button></form>
+                    @endunless
                 </div>
-            </div>
+                <div class="small text-muted mb-2">{{ $it->reference }} · {{ $it->start_date->format('d M Y') }} · {{ $it->days }} days · {{ config('murchison.categories')[$it->visitor_category]['label'] ?? '' }}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong class="text-forest">{{ ugx($it->total_ugx) }}</strong>
+                    <span class="badge bg-{{ $it->status === 'booked' ? 'success' : 'secondary' }} text-capitalize">{{ $it->status }}</span>
+                </div>
+            </div></div>
         </div>
     @empty
-        <p class="text-muted">Use the <a href="{{ route('planner.index') }}">trip planner</a> and save your results.</p>
+        <p class="text-muted">No saved itineraries yet. <a href="{{ route('itinerary.index') }}">Build one now</a>.</p>
     @endforelse
 </div>
 @endsection

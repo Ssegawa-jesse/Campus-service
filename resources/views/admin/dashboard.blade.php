@@ -30,7 +30,7 @@
 </div>
 
 <div class="row g-3 mb-4">
-    @foreach ([['tourists', 'Tourists', 'people'], ['operators', 'Operators', 'briefcase'], ['admins', 'Administrators', 'shield-lock'], ['views', 'Page & 360° views', 'eye'], ['plans', 'Trip plans', 'magic'], ['bookings', 'Bookings', 'calendar-check'], ['scenes', '360° scenes', 'badge-vr'], ['parks', 'Parks', 'tree']] as [$k, $l, $i])
+    @foreach ([['tourists', 'Tourists', 'people'], ['operators', 'Operators', 'briefcase'], ['admins', 'Administrators', 'shield-lock'], ['views', 'Page & 360° views', 'eye'], ['plans', 'Smart itineraries', 'calendar2-week'], ['bookings', 'Bookings', 'calendar-check'], ['scenes', '360° scenes', 'badge-vr'], ['parks', 'Parks', 'tree']] as [$k, $l, $i])
         <div class="col-6 col-md-3"><div class="kpi"><i class="bi bi-{{ $i }}"></i><div class="value">{{ number_format($stats[$k]) }}</div><div class="label">{{ $l }}</div></div></div>
     @endforeach
     <div class="col-6 col-md-3"><div class="kpi"><i class="bi bi-cash-coin"></i><div class="value fs-5">{{ ugx($stats['revenue']) }}</div><div class="label">Payments received</div></div></div>
@@ -41,10 +41,10 @@
         <h6>Trends – last 12 months</h6><canvas id="trendChart" height="90"></canvas>
     </div></div></div>
     <div class="col-lg-7"><div class="card border-0 shadow-sm h-100"><div class="card-body">
-        <h6>Most viewed parks</h6><canvas id="viewsChart" height="220"></canvas>
+        <h6>Park page views</h6><canvas id="viewsChart" height="220"></canvas>
     </div></div></div>
     <div class="col-lg-5"><div class="card border-0 shadow-sm h-100"><div class="card-body">
-        <h6>Popular interests (trip planner)</h6><canvas id="interestChart" height="220"></canvas>
+        <h6>Popular interests (Smart Itinerary)</h6><canvas id="interestChart" height="220"></canvas>
     </div></div></div>
     <div class="col-lg-7"><div class="card border-0 shadow-sm h-100"><div class="card-body">
         <h6>Bookings per park</h6><canvas id="bookingsChart" height="220"></canvas>
