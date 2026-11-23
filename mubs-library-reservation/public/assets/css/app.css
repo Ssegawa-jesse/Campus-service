@@ -1,0 +1,7 @@
+/* Small additions to the template styles for Laravel validation and empty states. */
+.input-field.is-invalid { border-color: #dc2626; }
+.field-error { margin-top: 0.35rem; font-size: 0.8rem; color: #b91c1c; }
+.flash-error { border-color: #fecaca; background: #fef2f2; color: #7f1d1d; }
+.flash-error ul { margin: 0.35rem 0 0 1.1rem; }
+.empty-row td { padding: 2.5rem 1rem; text-align: center; color: var(--stone-500); }
+.empty-row a { color: var(--orange); font-weight: 600; }
