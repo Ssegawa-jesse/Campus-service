@@ -1,0 +1,58 @@
+
+   PASS  Tests\Unit\HelpersTest
+  ✓ ugandan phone numbers are normalised                                 0.01s  
+  ✓ youtube links become embed urls
+
+   PASS  Tests\Feature\AccountsTest
+  ✓ new operator appears on admin dashboard and can be approved          1.75s  
+  ✓ operator can be rejected with a reason                               0.08s  
+  ✓ operator without company profile still shows for approval            0.29s  
+  ✓ logins and failures are recorded                                     0.31s  
+  ✓ passwords are hashed never plain text                                0.09s  
+  ✓ logged in admin opening register is told to log out                  0.08s  
+  ✓ multiple admins and last admin protection                            0.11s  
+  ✓ make admin command creates and promotes                              0.08s  
+  ✓ forgot and reset password                                            0.31s  
+  ✓ admin can set a users password                                       0.06s  
+  ✓ every park has real videos                                           0.08s  
+
+   PASS  Tests\Feature\BookingFlowTest
+  ✓ enquiry quote mobile money payment and confirmation                  0.39s  
+  ✓ declined payment keeps booking payable                               0.07s  
+
+   PASS  Tests\Feature\ExpiredSessionTest
+  ✓ expired registration form returns to form with details kept          0.01s  
+  ✓ expired logout just goes home                                        0.01s  
+
+   PASS  Tests\Feature\PagesTest
+  ✓ only murchison falls is seeded with the research activities          0.07s  
+  ✓ public pages load                                                    0.15s  
+  ✓ role protected areas                                                 0.07s  
+  ✓ every dashboard page renders                                         0.39s  
+  ✓ registration as operator creates unverified operator                 0.07s  
+
+   PASS  Tests\Feature\SiteLogoTest
+  ✓ admin can upload hide name and remove logo                           0.10s  
+  ✓ svg logos are refused                                                0.06s  
+
+   PASS  Tests\Feature\SmartTripModulesTest
+  ✓ itinerary has one entry per day with travel on first and last day    0.06s  
+  ✓ north bank activities add a paraa ferry crossing                     0.06s  
+  ✓ chimps only when interested and fit enough                           0.07s  
+  ✓ must do from hotspot is always scheduled                             0.06s  
+  ✓ night drive uses the night slot and relaxed pace limits activities   0.07s  
+  ✓ budget limit warning                                                 0.06s  
+  ✓ uwa tiers use usd for foreigners and ugx for east africans           0.06s  
+  ✓ children are excluded from chimp permits and pay half entry          0.06s  
+  ✓ budget page recalculates from query                                  0.06s  
+  ✓ route between gate and jetty and ferry detection                     0.07s  
+  ✓ assistant answers from the knowledge base and logs questions         0.10s  
+  ✓ admin publishes travel update and expired ones are hidden            0.09s  
+  ✓ researcher edits hotspot and tourist adds activity from hotspot      0.10s  
+  ✓ tourist saves books and pays for an itinerary with confirmations     0.14s  
+  ✓ admin notification simulator logs sms and email                      0.09s  
+  ✓ admin updates uwa prices                                             0.08s  
+
+  Tests:    40 passed (295 assertions)
+  Duration: 6.68s
+

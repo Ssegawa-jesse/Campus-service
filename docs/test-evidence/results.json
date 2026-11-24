@@ -1,0 +1,114 @@
+[
+ {
+  "id": "TC01",
+  "title": "Home page loads with six modules",
+  "steps": "Open the home page",
+  "expected": "Page shows the six module cards and live travel updates",
+  "actual": "6 module cards shown; travel updates panel shown",
+  "status": "Pass"
+ },
+ {
+  "id": "TC02",
+  "title": "Generate a 3-day Smart Itinerary",
+  "steps": "Open Smart Itinerary, keep defaults (3 days, 2 adults, Foreign Non-Resident), click Generate",
+  "expected": "A timed plan for Day 1–3 with a total cost is shown",
+  "actual": "3 day cards generated; total UGX 6,543,900",
+  "status": "Pass"
+ },
+ {
+  "id": "TC03",
+  "title": "Itinerary includes Paraa ferry for North Bank activities",
+  "steps": "Inspect the generated plan from TC02",
+  "expected": "A “Paraa ferry” item appears before the North Bank game drive",
+  "actual": "ferry item present; game drive present",
+  "status": "Pass"
+ },
+ {
+  "id": "TC04",
+  "title": "Budget uses UGX tariffs for East African Citizens",
+  "steps": "Open Budget, choose East African Citizen",
+  "expected": "Park entry shown as UGX 25,000 per adult per day and total in UGX",
+  "actual": "Entry line: UGX 25,000 tariff; 2 days × 2 adults = UGX 100,000",
+  "status": "Pass"
+ },
+ {
+  "id": "TC05",
+  "title": "Budget uses USD tariffs for Foreign Non-Residents",
+  "steps": "Open Budget, choose Foreign Non-Resident",
+  "expected": "Park entry calculated from US$45 per adult per day",
+  "actual": "Entry line shows @ US$45 converted to UGX",
+  "status": "Pass"
+ },
+ {
+  "id": "TC06",
+  "title": "Route distance and travel time",
+  "steps": "Open Navigation; route Kichumbanyobo Gate → Paraa Jetty; click Distance & travel time",
+  "expected": "Road distance (km) and travel time are displayed",
+  "actual": "Kichumbanyobo Gate → Paraa Jetty & Ferry Straight line: 42.8 km By road ≈ 57.8 km Travel time ≈ 1 h 56 min",
+  "status": "Pass"
+ },
+ {
+  "id": "TC07",
+  "title": "AI assistant answers a packing question",
+  "steps": "Open AI Assistant; ask “What should I pack?”",
+  "expected": "A packing list answer is returned",
+  "actual": "Packing list: passport/ID and yellow fever card, neutral-coloured long sleeves (tsetse flies), insect repellen…",
+  "status": "Pass"
+ },
+ {
+  "id": "TC08",
+  "title": "AI assistant recommends itinerary for a budget",
+  "steps": "Ask “Plan 3 days with $1,200 for wildlife”",
+  "expected": "Answer lists Day 1–3 activities and an estimated total",
+  "actual": "Here is a 3-day Murchison Falls plan for one Foreign Non-Resident traveller (Mid-range stay): Day 1: North Bank Game Dri…",
+  "status": "Pass"
+ },
+ {
+  "id": "TC09",
+  "title": "Travel updates are displayed",
+  "steps": "Open Updates",
+  "expected": "Active alerts (e.g. Paraa ferry schedule) are listed",
+  "actual": "5 active alerts shown",
+  "status": "Pass"
+ },
+ {
+  "id": "TC10",
+  "title": "360° scene loads and adds activity to itinerary",
+  "steps": "Open 360° Explore; click a hotspot with “Add to itinerary” via the API used by the hotspot button",
+  "expected": "Scene list shown; activity added to the itinerary basket",
+  "actual": "7 scenes listed; response: Night Game Drive added to your Smart Itinerary.",
+  "status": "Pass"
+ },
+ {
+  "id": "TC11",
+  "title": "Role protection: tourist cannot open admin",
+  "steps": "Log in as tourist; open /admin",
+  "expected": "Access denied (HTTP 403)",
+  "actual": "HTTP 403 returned",
+  "status": "Pass"
+ },
+ {
+  "id": "TC12",
+  "title": "Tourist saves, books and pays for an itinerary (MTN MoMo)",
+  "steps": "As tourist: generate, save, book with an operator, pay with MTN Mobile Money (simulator), approve",
+  "expected": "Booking status becomes Paid",
+  "actual": "Booking MFNP-37LLX7 – status Paid shown",
+  "status": "Pass"
+ },
+ {
+  "id": "TC13",
+  "title": "SMS and email confirmations logged",
+  "steps": "Log in as admin; open SMS & email logs",
+  "expected": "Payment confirmation SMS to +256741141433 and email to 2400725284@mubs.ac.ug are listed",
+  "actual": "SMS and “Payment received” email entries present in logs",
+  "status": "Pass"
+ },
+ {
+  "id": "TC14",
+  "title": "Admin publishes a travel update",
+  "steps": "As admin: Travel updates → New; fill form; save; open public Updates page",
+  "expected": "New alert appears on the public page",
+  "actual": "Alert visible on /updates",
+  "status": "Pass"
+ }
+]
